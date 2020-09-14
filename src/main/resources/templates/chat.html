@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>私信</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <link rel="stylesheet" href="/css/editormd.min.css">
+    <link rel="stylesheet" href="/css/editormd.preview.min.css">
+    <script src="/js/jquery-3.4.1.min.js"></script>
+    <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script src="/js/moment.js" type="application/javascript"></script>
+    <script src="/js/editormd.min.js" type="application/javascript"></script>
+    <script src="/js/lib/marked.min.js"></script>
+    <script src="/js/lib/prettify.min.js"></script>
+    <script src="/js/lib/raphael.min.js"></script>
+    <script src="/js/lib/underscore.min.js"></script>
+    <script src="/js/lib/sequence-diagram.min.js"></script>
+    <script src="/js/lib/flowchart.min.js"></script>
+    <script src="/js/lib/jquery.flowchart.min.js"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<style>
+    @keyframes fade {
+        from {
+            opacity: 1.0;
+        }
+        50% {
+            opacity: 0.4;
+        }
+        to {
+            opacity: 1.0;
+        }
+    }
+
+    @-webkit-keyframes fade {
+        from {
+            opacity: 1.0;
+        }
+        50% {
+            opacity: 0.4;
+        }
+        to {
+            opacity: 1.0;
+        }
+    }
+    .headerBox {
+        color: #fff;
+        /*padding: 10px;
+        font-size: 15px;
+        height: 60px;*/
+        animation: fade 800ms infinite;
+        -webkit-animation: fade 800ms infinite;
+    }
+</style>
+<script th:inline="javascript">
+   //设置聊天东条;
+   Date.prototype.Format = function (fmt) {
+       var o = {
+           "M+": this.getMonth() + 1, //月份
+           "d+": this.getDate(), //日
+           "H+": this.getHours(), //小时
+           "m+": this.getMinutes(), //分
+           "s+": this.getSeconds(), //秒
+           "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+           "S": this.getMilliseconds() //毫秒
+       };
+       if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+       for (var k in o)
+           if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+       return fmt;
+   }
+    var websocket = null;
+   // alert($("#socketId").val());
+    var i=0;
+    //判断当前浏览器是否支持WebSocket
+
+    if ('WebSocket' in window) {
+        //2,123 2登录用户标识,123会话id
+        //[[${session.usr}]]获取session的用户标识
+       //var rand = math.floor(math.random () * 900) + 100;
+        var url = "ws://" + window.location.host +"/webSocketOneToOne/"+[[${session.user.id}]]+","+[[${socketId}]]
+        websocket = new WebSocket(url);
+    } else {
+        alert('当前浏览器不支持该功能')
+    }
+    //连接发生错误的回调方法
+    websocket.onerror = function() {
+        //setMessageInnerHTML("WebSocket连接发生错误");
+    };
+    websocket.onopen = function() {
+        //连接成功建立的回调方法
+       // setMessageInnerHTML("WebSocket连接成功");
+    }
+    //接收到消息的回调方法
+    websocket.onmessage = function(event) {
+       // alert(event.data)
+        var socketId=[[${socketId}]];
+        var socketId1=event.data.substr(18,18)
+        if(socketId==null){
+            alert("有私信纪录之外的人给你发消息啦，有人给你发消息啦，刷新即可看到")
+        }else{
+             //console.log("回调信息",event.data)
+            if(event.data.substr(0, 5)==".,?*."){
+                if(socketId1==socketId){
+                    setMessageInnerHTML1(event.data.substr(5));
+                }else{
+                        alert("不是正在对话的人，但是有人跟你发消息了")
+                    var count1=$("#badge"+socketId1).html()-0
+                    count1=count1+1
+                    $("#badge"+socketId1).html(count1);
+                    $("#badge"+socketId1).addClass("headerBox")
+                }
+            }else{
+                 alert(event.data.substr(13,18))
+                if(event.data.substr(13,18)==[[${socketId}]]) {
+                    setMessageInnerHTML(event.data);
+                }else{
+                    alert("不是正在对话的人，但是有人跟你发消息了1")
+                }
+            }
+        }
+    }
+    //连接关闭的回调方法
+    websocket.onclose = function() {
+      //  setMessageInnerHTML("WebSocket连接关闭");
+    }
+    //监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+    window.onbeforeunload = function() {
+        closeWebSocket();
+    }
+    //将对方消息显示在网页上
+    function setMessageInnerHTML1(innerHTML) {
+        var msgid=innerHTML.substr(0,13);
+        var msg=innerHTML.substr(32);
+       var currentdate=getNowFormatDate()
+        var html =' <div style="height:85px;padding: 10px">\n' +
+            '                <div style="float:left;width: 50px;height: 50px;" >\n' +
+            '                    <img style="width: 50px;height: 50px;border-radius: 50%" name="img">\n' +
+            '                </div>\n' +
+            '                <div style="float:left;height:85px;margin-left:10px" >\n' +
+            '                    <div id="'+msgid+'" style="min-height:35px;max-height:74px;padding:2px;max-width: 400px;background: #d7e9ff;border-radius: 4px; line-height: 21px; font-size: 14px;">' +
+            '' + '<textarea style="display:none;" name="mes">'+msg+'</textarea>'+
+            '</div>\n' +
+            '                    <span style="font-size:10px;">'+currentdate+'</span>\n' +
+            '\n' +
+            '                </div>\n' +
+            '            </div>'
+        //text="${#dates.format(message.time,'yyyy-MM-dd HH:mm')}"
+        $(function () {
+            editormd.markdownToHTML(msgid, {
+                htmlDecode      : "style,script,iframe",  // you can filter tags decode
+                emoji           : true,
+                taskList        : true,
+                tex             : true,  // 默认不解析
+                flowChart       : true,  // 默认不解析
+                sequenceDiagram : true,  // 默认不解析
+            });
+        });
+        document.getElementById('message').innerHTML += html;
+        //document.getElementsByName('mes')[i].innerHTML +=msg;
+        document.getElementsByName("img")[i].src =[[${otherUser.avatarUrl}]];//对方的头像
+        i++;
+        $('.message').scrollTop($('.message')[0].scrollHeight);
+    }
+    //将自己消息显示在网页上
+    function setMessageInnerHTML(innerHTML) {
+        // var img=session.user.avatarUrl;
+        var msgid=innerHTML.substr(0,13);
+        var msg=innerHTML.substr(32);
+        var dt = new Date();
+        var time2 = new Date().Format("yyyy-MM-dd HH:mm");
+        var html =' <span><div style="height:85px;padding: 10px">\n' +
+            '                <div style="float:right;width: 50px;height: 50px;" >\n' +
+            '                    <img style="width: 50px;height: 50px;border-radius: 50%" name="img">\n' +
+            '                </div>\n' +
+            '                <div style="float:right;height:85px;margin-right:10px" >\n' +
+            '    <div id="'+msgid+'" style="min-height:35px;max-height:74px;padding:2px;max-width: 400px;background: #d7e9ff;border-radius: 4px; line-height: 21px; font-size: 14px;" >' +
+            '' + '<textarea style="display:none;" name="mes">'+msg+'</textarea>'+
+            '</div>\n' +
+            '                    <span style="font-size:10px;" name="time"></span>\n' +
+            '\n' +
+            '                </div>\n' +
+            '            </div></span>'
+
+        $(function () {
+            editormd.markdownToHTML(msgid, {
+                htmlDecode      : "style,script,iframe",  // you can filter tags decode
+                emoji           : true,
+                taskList        : true,
+                tex             : true,  // 默认不解析
+                flowChart       : true,  // 默认不解析
+                sequenceDiagram : true,  // 默认不解析
+            });
+        });
+        document.getElementById('message').innerHTML += html;
+        document.getElementsByName('time')[i].innerHTML += time2;
+        document.getElementsByName("img")[i].src =[[${session.user.avatarUrl}]];
+        $('.message').scrollTop($('.message')[0].scrollHeight);
+        //document.getElementsByName('mes')[i].innerHTML += msg;   报错
+        i++;
+        $('.message').scrollTop($('.message')[0].scrollHeight);
+    }
+    //关闭WebSocket连接
+    function closeWebSocket() {
+        websocket.close();
+    }
+    //发送消息
+    function send() {
+       // alert("可以和")
+        if([[${socketId}]]==null){
+            alert("没有对话人")
+        }else{
+            var text=document.getElementById('description');
+            var message =text.value;
+            //alert("111"+message);
+            //message作为发送的信息，role作为发送的对象标识，socketId是此次会话的标识
+            //alert(document.getElementsByClassName("CodeMirror-activeline").find('pre').find('span'))
+            var h1='<span style="padding-right: 0.1px;"><span cm-text>&#8203;</span></span>'
+            document.getElementsByTagName("pre")[0].innerHTML=h1;
+            //text.value="";
+            // alert(document.getElementById('toname').value)
+            websocket.send(JSON.stringify({'message':message,'role':document.getElementById('toname').value,'socketId':[[${socketId}]]}));
+        }
+    }
+   function getNowFormatDate()
+   {
+       var date = new Date();
+       var seperator1 = "-";
+       var seperator2 = ":";
+       var month = date.getMonth() + 1;
+       var strDate = date.getDate();
+       if (month >= 1 && month <= 9)
+       {
+           month = "0" + month;
+       }
+       if (strDate >= 0 && strDate <= 9)
+       {
+           strDate = "0" + strDate;
+       }
+       var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+           + " " + date.getHours() + seperator2 + date.getMinutes()
+       return currentdate;
+   }
+</script>
+<script type="application/javascript">
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+</script>
+<body>
+<div th:insert="~{navigation :: nav}"></div>
+<div style="width:960px;height:730px;margin:0 auto;background: gainsboro">
+    <div style="float: left;width: 178px;height: 100%;">
+        <div style="    padding-top: 10px;text-align: center;height: 40px;border: 1px solid;border-color: #bbb8b8;">私信消息</div>
+        <div style="width:100%;height: 45px; padding-top: 10px;border: 1px solid;border-color:#bbb8b8;">
+            <div style="width:50%;float: left;height: 100%;border-bottom: 2px solid;padding-left:10px;">
+                <span class="glyphicon glyphicon-envelope" aria-hidden="true" style="font-size:20px; "></span>
+                <span style="font-size: 13px;cursor: pointer" onclick="showsixin()">私信纪录</span>
+            </div>
+            <div style="width:50%;float: left;height: 100%;border-bottom: 2px solid;font-size: 18px; padding-left: 10px;">
+                <span class="glyphicon glyphicon-user" aria-hidden="true" style="font-size: 20px; "></span>
+                <sapn style="font-size: 13px;cursor: pointer" onclick="showlianxiren()">联系人</sapn>
+            </div>
+        </div>
+        <div id="sixin" style="width: 100%;height:644px;background: #a9dff3">
+            <span>
+                <div style="position: absolute; width: 178px; height: 45px;background: #ccc; opacity: 0.4;"></div>
+            </span>
+            <input id="toname" type="text" style="display: none" th:value="${contactDTOList[0].getUser2().getId()}" th:if="${contactDTOList.size()}!=0"/>
+
+            <span th:each="contactDTO : ${contactDTOList}" th:if="${contactDTOList.size()}!=0">
+                 <div style="background:#5bc0de;height:45px;padding: 8px;cursor: pointer" th:id="${contactDTO.getSocketId()}">
+                    <a id="contactuser" th:href="'/chat/'+${contactDTO.getUser2().getId()}">
+                        <img th:src="${contactDTO.getUser2().avatarUrl}" style="width: 30px;height: 30px;border-radius: 50%;float: left">
+                        <span th:text="${contactDTO.getUser2().getName()}" style="float: left;margin: 4px 10px;color:#fff"></span>
+                        <span class="badge headerBox" th:id="'badge'+${contactDTO.getSocketId()}" style="color: #9c3328;float: right" th:text="${contactDTO.flagreadnumber}" th:if="${contactDTO.flagreadnumber}!=0"></span>
+                        <span class="badge" th:id="'badge'+${contactDTO.getSocketId()}" style="color: #9c3328;float: right" th:if="${contactDTO.flagreadnumber}==0"></span>
+                    </a>
+                 </div>
+            </span>
+            <span th:if="${contactDTOList.size()}==0">
+                暂无联系人
+            </span>
+        </div>
+        <div id="lianxiren" style="width: 100%;height:644px;background: #a9dff3;display: none;">
+            <div th:if="${attentionDTOS.size()}==0" style="   margin-top: 100px;text-align: center;">
+                空空如也~
+            </div>
+            <div th:if="${attentionDTOS.size()}!=0" style="width:57px;float: left;padding:4px;" th:each="attentionDTO : ${attentionDTOS}">
+                <div class="media-body" style="" th:id="${'attentionpeople'+attentionDTO.user.id}">
+                    <a class="img_container"  th:href="@{'/chat/'+${attentionDTO.user.id}}" style="border-radius: 4px;display: block;text-decoration: none;background-color: white;cursor: pointer; ">
+                        <img th:src="${attentionDTO.user.avatarUrl}" th:alt="${attentionDTO.user.name}" style="width: 50px;height:50px;  border-radius: 4px;">
+                        <div class="mask" th:text="${attentionDTO.user.name}"></div>
+                    </a>
+                </div>
+                <a style="cursor: pointer;font-size: 12px" th:href="@{'/disattention/'+${attentionDTO.user.id}}">取消关注</a>
+            </div>
+        </div>
+    </div>
+    <div style="float: left;width:782px;height: 100%">
+        <div style="text-align: center;height: 40px;border: 1px solid;border-color: #bbb8b8; padding-top: 10px;background: #5bc0de">
+            <span class="glyphicon glyphicon-wrench" style="cursor: pointer">设置</span>
+        </div>
+        <div th:if="${otherUser}!=null" th:text="'正在与'+${otherUser.getName()}+'用户对话中'" style="margin: 0 auto;padding-top: 10px;height:45px;border: 1px solid; border-color: #bbb8b8;background: #a3a3a3;color: #fff;text-align: center;"></div>
+        <div th:if="${otherUser}==null" style="margin: 0 auto;padding-top: 10px;height:45px;border: 1px solid; border-color: #bbb8b8;background: #a3a3a3;color: #fff;text-align: center;">没有对话</div>
+        <div style="width:782px;height:440px;overflow-y: scroll" id="message" class="message">
+           <span th:each="message : ${messages}" >
+            <div style="height:85px;padding: 10px" th:if="${message.fromuser!=session.user.id}">
+             <div style="float:left;width: 50px;height: 50px;" >
+                <img style="width: 50px;height: 50px;border-radius: 50%" th:src="${otherUser.avatarUrl}">
+             </div>
+             <div style="float:left;height:85px;margin-left:10px" >
+                <div th:id="${message.getId()}" style=" min-height: 35px; max-height: 74px;padding:2px;max-width: 400px;background: #d7e9ff;border-radius: 4px; line-height: 21px; font-size: 14px;">
+                   <textarea style="display:none;" th:text="${message.getMsg()}"></textarea>
+                </div>
+                  <script type="text/javascript">
+                        $(function () {
+                            editormd.markdownToHTML([[${message.getId()}]], {
+                                htmlDecode      : "style,script,iframe",  // you can filter tags decode
+                                emoji           : true,
+                                taskList        : true,
+                                tex             : true,  // 默认不解析
+                                flowChart       : true,  // 默认不解析
+                                sequenceDiagram : true,  // 默认不解析
+                            });
+                        });
+                     </script>
+                <span style="font-size:10px" th:text="${#dates.format(message.time,'yyyy-MM-dd HH:mm')}"></span>
+            </div>
+           </div>
+            <div style="height:85px;padding: 10px" th:if="${message.fromuser==session.user.id}">
+                <div style="float:right;width: 50px;height: 50px;" >
+                    <img style="width: 50px;height: 50px;border-radius: 50%" th:src="${session.user.avatarUrl}">
+                </div>
+                <div style="float:right;height:85px;margin-right:10px" >
+                    <div th:id="${message.getId()}" style=" min-height: 35px; max-height: 74px;padding:2px;max-width: 430px;background: #d7e9ff;border-radius: 4px; line-height: 21px; font-size: 14px;" >
+                       <textarea style="display:none;" th:text="${message.getMsg()}"></textarea>
+                    </div>
+                    <script type="text/javascript">
+                        //alert()
+                        /*var s="msgview";
+                        var msgname=s+[[${message.getId()}]];*/
+                        //alert(msgname)
+                       $(function () {
+                         editormd.markdownToHTML([[${message.getId()}]], {
+                             htmlDecode      : "style,script,iframe",  // you can filter tags decode
+                             emoji           : true,
+                             taskList        : true,
+                             tex             : true,  // 默认不解析
+                             flowChart       : true,  // 默认不解析
+                             sequenceDiagram : true,  // 默认不解析
+                         });
+                     });
+                     </script>
+                    <span style="font-size:10px" th:text="${#dates.format(message.time,'yyyy-MM-dd HH:mm')}"></span>
+                </div>
+            </div>
+          </span>
+        </div>
+        <div style="width:782px;height:115px;position: relative;padding-top: 5px;">
+            <div class="form-group" id="question-editor" style="height: 150px">
+                    <textarea name="description" id="description" style="display: none"
+                              class="form-control"
+                              cols="5"
+                              rows="5"></textarea>
+            </div>
+            <script type="text/javascript">
+                $(function () {
+                    var editor = editormd("question-editor", {
+                        width: "100%",
+                        height: 200,
+                        path: "/js/lib/",
+                        delay: 0,
+                        watch: false,
+                        toolbarIcons : function() {
+                            return ["undo","redo","emoji","bold","hr","image","table","watch",]
+                        },
+                        placeholder: "请输入",
+                        imageUpload: true,
+                        emoji: true,
+                        imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
+                        imageUploadURL: "/file/upload",
+                    });
+                });
+            </script>
+            <button onclick="send()" style="    position: absolute;top: 12px;right: 10px;z-index: 10;">发送</button>
+        </div>
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+<script>
+    $('.message').scrollTop($('.message')[0].scrollHeight);
+    $('#expression1').hide();
+    function  show1(){
+        $('#expression1').show();
+    }
+    function  hide1(){
+        $('#expression1').hide();
+    }
+    function  showsixin(){
+        $('#sixin').show();
+        $('#lianxiren').hide();
+    }
+    function  showlianxiren(){
+        $('#lianxiren').show();
+        $('#sixin').hide();
+    }
+</script>
+</body>
+</html>

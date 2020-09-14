@@ -1,0 +1,252 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>注册</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+  <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<script type="application/javascript">
+    window.onload=function () {
+        var section2 = $('#section2').val();//利用input获取后台model里的值
+        if (section2 == "login") {
+            $('#login').addClass("active");
+        }
+    }
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+   /* function login(){
+        document.getElementById("form1").submit();
+    }*/
+    var messageData_tamp;
+    var messageData_hash;
+    var wait = 120; // 短信验证码120秒后才可获取下一个
+    /**
+     * 获取验证码
+     * @param that
+     */
+    function getMsgNum(that) {
+        var phoneNumber = $('#phone').val();
+        if(phoneNumber.length!=11){
+            alert("手机号码格式不对，请检查！！！")
+        }else {
+            //alert("该功能太耗钱了，博主太穷，已关闭！！！")
+            setButtonStatus(that); // 设置按钮倒计时
+            var obj = {
+                phoneNumber: phoneNumber
+            };
+            $.ajax({
+                url: "/sendMsg1", // 后台短信发送接口
+                type: 'POST',
+                dataType: 'json',
+                contentType: "application/json",
+                async: false, //false 同步
+                data: JSON.stringify(obj),
+                xhrFields: {
+                    withCredentials: true
+                },
+                success: function (result) {
+                    if (result.code == '200') {
+                        messageData_tamp = result.tamp;
+                        messageData_hash = result.hash;
+                    }else if (result.code == '100') {
+                        alert("手机号码已经注册过，请直接登录！");
+                        wait=0;
+                    } else {
+                        alert("错误码:" + data.code + "  错误信息:" + data.message);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log(XMLHttpRequest.status);
+                    console.log(XMLHttpRequest.readyState);
+                    console.log(textStatus);
+                }
+            });
+        }
+    }
+    /**
+     * 设置按钮状态
+     */
+    function setButtonStatus(that) {
+        if (wait == 0) {
+            that.removeAttribute("disabled");
+            that.value="获取验证码";
+            wait = 60;
+        } else {
+            that.setAttribute("disabled", true);
+            that.value=wait+"秒后重新发送";
+            wait--;
+            setTimeout(function() {
+                setButtonStatus(that)
+            }, 1000)
+        }
+    }
+    /**
+     * 登录按钮，只需看验证码是否正确
+     */
+    function validateNum() {
+        var phoneNumber = $('#phone').val();
+        var userName = $('#userName').val();
+        var userPassword = $('#userPassword').val();
+        var inputMsgNum = $('#msg_num').val();
+        if(phoneNumber.length!=11){
+            alert("电话号码输入格式不对，请检查！！！")
+        }
+        if(userName.length!=0){
+            alert("昵称输入不能为空，请检查！！！")
+        }
+        if(userPassword.length!=0){
+            alert("密码输入不能为空，请检查！！！")
+        }
+        if(inputMsgNum.length!=6){
+            alert("验证码输入不能为空，请检查！！！")
+        }else {
+            var data = {
+                msgNum: inputMsgNum,
+                tamp: messageData_tamp,
+                hash: messageData_hash,
+                phone:phoneNumber
+            };
+            $.ajax({
+                url: "/validateNum1", // 验证接口
+                type: 'POST',
+                dataType: 'json',
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                async: false, //false 同步
+                xhrFields: {
+                    withCredentials: true
+                },
+                success: function (result) {
+                    if (result.code == '101') {
+                        $('#form').submit();
+                    }else if (result.code == '102') {
+                        alert("验证码输入不正确！！！");
+                    }else if(result.code == '103') {
+                        alert("验证码已过期！！！");
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log(XMLHttpRequest.status);
+                    console.log(XMLHttpRequest.readyState);
+                    console.log(textStatus);
+                }
+            });
+        }
+    }
+</script>
+<body>
+<input th:value="${section2}" style="display: none" id="section2">
+<div th:insert="~{navigation :: nav}"></div>
+<div class="container-fluid main" style="background-image: url('/images/bg/bg1.jpg');background-size: 100% 100%;">
+    <div  style="padding-top: 25px;width: 80px; height: 140px;margin: 0 auto;">
+        <h1>注册</h1>
+    </div>
+    <div class="row" style="height: 465px">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+           <div style="width:80%;margin:0 auto;">
+               <form method="get" action="/register" id="form">
+               <div style="width:60%;margin:0 auto;min-width: 500px">
+                <div style="padding-top: 20px;">
+                   <input type="text" placeholder="输入昵称" id="userName" name="userName" maxlength="50" style="width: 100%;border: 1px solid #ddd;
+    color: #aaa;
+    font-size: 14px;
+    padding: 10px;
+    height: 40px;
+    vertical-align: middle;
+    border-radius: 4px;">
+                </div>
+                <div style="padding-top: 20px;">
+                    <input type="password" placeholder="输入密码" id="userPassword" name="userPassword" style="width: 100%;border: 1px solid #ddd;
+    color: #aaa;
+    font-size: 14px;
+    padding: 10px;
+    height: 40px;
+    vertical-align: middle;
+    border-radius: 4px;">
+                </div>
+                <div class="row" style="padding-top:20px">
+                    <div class="col-lg-6" style="width: 100%;">
+                        <div class="input-group">
+                            <div class="input-group-btn">
+                                   <button type="button" style="height:40px" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">中国大陆 <span class="caret"></span></button>
+                                   <ul class="dropdown-menu">
+                                       <li><a href="#">中国大陆</a></li>
+                                       <li><a href="#">中国香港</a></li>
+                                       <li><a href="#">中国澳门</a></li>
+                                       <li><a href="#">中国台湾</a></li>
+                                   </ul>
+                               </div><!-- /btn-group -->
+                               <input name="userPhone" type="text" id="phone" class="form-control" maxlength="11" aria-label="输入手机号" style="height:40px">
+                           </div><!-- /input-group -->
+                       </div><!-- /.col-lg-6 -->
+                 </div><!-- /.row -->
+                <div class="row" style="padding-top:20px">
+                       <div class="col-lg-6" style="width:100%">
+                           <div class="input-group">
+                               <input type="text" class="form-control" id="msg_num" maxlength="6" placeholder="请输入验证码" style="height:40px">
+                               <span class="input-group-btn">
+                               <input class="btn btn-default" style="height:40px" type="button" onclick="getMsgNum(this)" id="verify_refresh" value="获取验证码">
+                            </span>
+                           </div><!-- /input-group -->
+                       </div><!-- /.col-lg-6 -->
+                 </div><!-- /.row -->
+                   <div class="btn-group" role="group" style="  margin-top: 20px;width: 100%;">
+                       <button type="button" onclick="validateNum()" class="btn btn-default" style="width: 100%;">注册</button>
+                   </div>
+            </div>
+               </form>
+
+            <div style="padding-top: 20px; width: 60%; margin: 0 auto;">
+                <a href="/userlogin" style="float:right;">
+                    <span style="color: #ffffec">已有账号直接登录</span>
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+</body>
+</html>

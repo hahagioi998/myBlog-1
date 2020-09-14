@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>码匠社区</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+    <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<script type="application/javascript">
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+</script>
+
+<body>
+<div th:insert="~{navigation :: nav}"></div>
+<div class="jumbotron" style="min-height: 300px;">
+    <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12"><h1>出错啦！！！</h1>
+        <p th:text="${message}">服务器太热啦，要不然稍等下再来试试~</p>
+        <p><a class="btn btn-primary btn-lg" href="/" role="button">回到主页</a></p>
+    </div>
+    <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
+        <img class="img-thumbnail" style="width: 35%;" src="/images/weixin.jpg">
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+</body>
+</html>

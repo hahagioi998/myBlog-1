@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="life.majiang.community.mapper.UserExtMapper">
+  <resultMap id="BaseResultMap" type="life.majiang.community.model.User">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="account_id" jdbcType="VARCHAR" property="accountId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="token" jdbcType="VARCHAR" property="token" />
+    <result column="gmt_create" jdbcType="BIGINT" property="gmtCreate" />
+    <result column="gmt_modified" jdbcType="BIGINT" property="gmtModified" />
+    <result column="bio" jdbcType="VARCHAR" property="bio" />
+    <result column="avatar_url" jdbcType="VARCHAR" property="avatarUrl" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="role" jdbcType="VARCHAR" property="role" />
+    <result column="integral" jdbcType="INTEGER" property="integral" />
+    <result column="face" jdbcType="VARCHAR" property="face" />
+  </resultMap>
+  <select id="countBySearch" parameterType="life.majiang.community.dto.UserQueryDTO" resultType="java.lang.Integer">
+    select count(*) from user
+    <where>
+      <if test="search!=null and search!=''">
+        and name regexp #{search}
+      </if>
+    </where>
+  </select>
+  <select id="selectBySearch" parameterType="life.majiang.community.dto.UserQueryDTO" resultMap="BaseResultMap">
+    select * from user
+    <where>
+      <if test="search!=null and search!=''">
+        and name regexp #{search}
+      </if>
+    </where>
+    order by gmt_create desc limit #{page},#{size}
+  </select>
+</mapper>

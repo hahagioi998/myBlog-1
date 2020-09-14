@@ -1,0 +1,380 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${question.title}"></title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <link rel="stylesheet" href="/css/editormd.min.css">
+    <link rel="stylesheet" href="/css/editormd.preview.min.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+    <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script src="/js/moment.js" type="application/javascript"></script>
+    <script src="/js/editormd.min.js" type="application/javascript"></script>
+    <script src="/js/lib/marked.min.js"></script>
+    <script src="/js/lib/prettify.min.js"></script>
+    <script src="/js/lib/raphael.min.js"></script>
+    <script src="/js/lib/underscore.min.js"></script>
+    <script src="/js/lib/sequence-diagram.min.js"></script>
+    <script src="/js/lib/flowchart.min.js"></script>
+    <script src="/js/lib/jquery.flowchart.min.js"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<script>
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+</script>
+<body>
+<input th:value="${section2}" style="display: none" id="section2">
+<div th:insert="~{navigation :: nav}"></div>
+<div class="container-fluid main">
+    <div class="row">
+        <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12">
+            <!--正文-->
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <h4 class="question-title">
+                    <span th:text="${question.title}" style=" line-height: 25px;min-width:520px;float: left;"></span>
+                    <span th:if="${collectId==0}">
+                        <a th:href="@{'/collect/'+${question.id}}" style="text-decoration: none; border-radius: 2px;border: 1px solid #ccc;font-size: 12px;    display: inline-block;margin-left: 35px;  padding:4px 8px;">收藏</a>
+                    </span>
+                    <span th:if="${collectId>0}">
+                        <a th:href="@{/discollect(collectId=${collectId},id=${question.id})}" style="text-decoration: none; border-radius: 2px;border: 1px solid #ccc;font-size: 12px;    display: inline-block;margin-left: 35px;  padding:4px 8px;">已收藏</a>
+                    </span>
+                    <span th:if="${collectId==-1}" style="padding:4px 8px;">
+
+                    </span>
+                    <span th:if="${isnotzan==1}" id="iszan" class="glyphicon glyphicon-thumbs-up icon" onclick="quszan()" style="cursor: pointer;top: 5px;color: #5bc0de">
+                    </span>
+                    <span th:if="${isnotzan==0}" id="iszan" class="glyphicon glyphicon-thumbs-up icon" onclick="quszan()" style="cursor: pointer;top: 5px">
+                    </span>
+                    <span th:if="${isnotzan==-1}" class="glyphicon glyphicon-thumbs-up icon" style="cursor: pointer;top: 5px">
+                    </span>
+                    <span th:text="${question.likeCount}" id="qusId1" style="margin-left: 10px;"></span>
+                </h4>
+                <span class="text-desc">
+                作者：<span th:text="${question.user.name}" style="margin-right: 15px;"></span>
+                发布时间：<span th:text="${#dates.format(question.gmtCreate,'yyyy-MM-dd HH:mm')}" style="margin-right: 15px;"></span>
+               阅读数：<span th:text="${question.viewCount}"></span>
+                </span>
+                <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <!--内容-->
+                <!--
+                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 form-group" id="question-editor">
+                     <textarea readonly="readonly" name="description" id="description" th:text="${question.description}"
+                               class="form-control"
+                               cols="30"
+                               rows="16"></textarea>
+                </div>-->
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="question-view">
+                     <textarea style="display:none;" th:text="${question.description}"></textarea>
+                 </div>
+                 <script type="text/javascript">
+                     $(function () {
+                         editormd.markdownToHTML("question-view", {
+                             htmlDecode      : "style,script,iframe",  // you can filter tags decode
+                             emoji           : true,
+                             taskList        : true,
+                             tex             : true,  // 默认不解析
+                             flowChart       : true,  // 默认不解析
+                             sequenceDiagram : true,  // 默认不解析
+                         });
+                     });
+                 </script>
+                <!--标签-->
+                <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <span class="label label-info question-tag" th:each="tag:${question.tag.split(',')}">
+                        <span class="glyphicon glyphicon-tags"></span>
+                       <span class="label label-info" th:text="${tag}"></span>
+                    </span>
+                </div>
+                <!--编辑-->
+                <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <a style="margin-right: 20px;" th:href="@{'/publish/'+${question.id}}" class="community-menu" th:if="${session.user!=null&&session.user.id==question.creator}">
+                        <span class="glyphicon glyphicon-pencil" aria-hidden="true">编辑</span>
+                    </a>
+                    <a onclick="showdelect()" style="cursor: pointer" class="community-menu" th:if="${session.user!=null&&session.user.id==question.creator}">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true">删除</span>
+                    </a>
+                </div>
+            </div>
+            <!--回复-->
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <h3>
+                <span id="commentCount" th:text="${question.commentCount}"></span> 个回复
+            </h3>
+            <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12 comment-sp">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 comments" th:id="'comm-'+${comment.id}" th:each="comment : ${comments}">
+                <div class="media">
+                    <div class="media-left">
+                       <a th:href="${session.user!=null&&session.user.id==comment.user.id ? '/userhome/home/' : '/otheruserhome/tie/'+comment.user.id}">
+                            <img class="media-object img-rounded"
+                                 th:src="${comment.user.avatarUrl}"><!--${question.user.avatarUrl}-->
+                       </a>
+                    </div>
+                    <div class="media-body" th:id="${'comment-body-'+comment.id}">
+                        <h5 class="media-heading">
+                            <span th:text="${comment.user.name}"></span>
+                        </h5>
+                        <div th:text="${comment.content}"></div>
+                        <div class="menu">
+                            <span th:data-id="${comment.id}" class="glyphicon glyphicon-thumbs-up icon" onclick="zan(this)">
+                                <!--<input type="button" th:value="${comment.likeCount}" th:id="'comlikeId-'+${comment.id}">-->
+                                <span th:text="${comment.likeCount}" th:id="'comlikeId-'+${comment.id}"></span>
+                            </span>
+                            <script type="text/javascript">
+                                function zan(e) {
+                                    var inforMsg = $("#informsg")
+                                    var id = e.getAttribute("data-id");
+                                    var comlikeId = $("#comlikeId-" + id);
+                                    var qusId = $('#question_id').val();
+                                    var upId = $('#upId').val();
+                                    var obj = {
+                                        id: id,
+                                        upId: upId,
+                                        qusId:qusId
+                                    };
+                                    $.ajax({
+                                        url: "/zan", // 后台短信发送接口
+                                        type: 'POST',
+                                        dataType: 'json',
+                                        contentType: "application/json",
+                                        async: false, //false 同步
+                                        data: JSON.stringify(obj),
+                                        success: function (result) {
+                                            if(result.code==201){
+                                                $('#infor').show();
+                                                $(inforMsg).html("当前操作需要登录，请登陆后重试!")
+                                            }else{
+                                                alert("2")
+                                                $(comlikeId).html(result.comcount)
+                                            }
+                                        }
+                                    })
+                                }
+                            </script>
+                            <span th:data-id="${comment.id}" onclick="collapseComments(this)" class="comment-icon">
+                                <span class="glyphicon glyphicon-comment"></span>
+                                <span th:text="${comment.commentCount}"></span>
+                            </span>
+                          <!--  <a th:href="@{/delectcomment(commentId=${comment.id},id=${comment.parentId})}" class="community-menu" th:if="${session.user!=null&&session.user.id==comment.commentator}">-->
+                            <a th:data-id="${comment.id}" onclick="delectcom(this)" class="community-menu" th:if="${session.user!=null&&session.user.id==comment.commentator}">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                            </a>
+                            <span class="pull-right" th:text="${#dates.format(comment.gmtCreate,'yyyy-MM-dd')}"></span>
+                        </div>
+                        <!-- 二级品论-->
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 collapse sub-comments" th:id="${'comment-'+comment.id}">
+                            <!-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 comments" th:each="comment : ${comments}">
+                                    <div class="media">
+                                        <div class="media-left">
+
+                                                <img class="media-object img-rounded"
+                                                     th:src="${comment.user.avatarUrl}">
+
+                                        </div>
+                                        <div class="media-body">
+                                            <h5 class="media-heading">
+                                                <span th:text="${comment.user.name}"></span>
+                                            </h5>
+                                            <div th:text="${comment.content}"></div>
+                                            <div class="menu">
+                                                <span class="pull-right" th:text="${#dates.format(comment.gmtCreate,'yyyy-MM-dd')}"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                             </div>-->
+                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                 <input type="text" class="form-control" placeholder="评论一下" th:id="${'input-'+comment.id}">
+                                 <button type="button" class="btn btn-success pull-right" onclick="comment(this)" th:data-id="${comment.id}">评论</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <!--输入框回复-->
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <h3>
+                    提交回复
+                </h3>
+            <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12 comment-sp">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="comment_section">
+                <div class="media">
+                    <div class="media-left">
+                        <span th:if="${session.user!=null}">
+                            <a th:href="${session.user.id==question.creator ? '/userhome/home/' : '/otheruserhome/tie/'+question.creator}">
+                               <img class="media-object img-rounded"
+                                 th:src="${session.user!=null ? session.user.avatarUrl : '/images/default-avatar.png'}"><!--${question.user.avatarUrl}-->
+                           </a>
+                        </span>
+                        <span th:if="${session.user==null}">
+                            <a>
+                               <img class="media-object img-rounded" src="/images/default-avatar.png"><!--${question.user.avatarUrl}-->
+                           </a>
+                        </span>
+                    </div>
+                    <div class="media-body">
+                        <h5 class="media-heading" style=" margin-top: 15px;">
+                            <span th:text="${session.user!=null ? session.user.name : '未登录匿名用户'}"></span>
+                        </h5>
+                    </div>
+                </div>
+                <input type="hidden" id="question_id" th:value="${question.id}">
+                <textarea class="form-control comment" rows="6" id="comment_content"></textarea>
+                <button type="button" class="btn btn-success btn-comment" onclick="post()">回复</button>
+            </div>
+          </div>
+
+        </div>
+        <!--右边信息快-->
+        <div class="col-lg-3 col-md-12 col-sm-12 col-xs-12">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+               <h3>发起人</h3>
+                <div class="media" style="margin-top: 17px;">
+                    <a th:href="@{'/otheruserhome/tie/'+${question.user.id}}" th:if="${collectId==-1}" style="float: left">
+                        <img class="media-object img-rounded" th:src="${question.user.avatarUrl}"><!--${question.user.avatarUrl}-->
+                    </a>
+                    <a href="/userhome/home/" th:if="${session.user!=null&&session.user.id==question.creator}" style="float: left">
+                        <img class="media-object img-rounded"
+                             th:src="${question.user.avatarUrl}"><!--${question.user.avatarUrl}-->
+                    </a>
+                    <input th:value="${question.user.id}" style="display: none" id="upId">
+                    <a th:href="@{'/otheruserhome/tie/'+${question.user.id}}" th:if="${session.user!=null&&session.user.id!=question.creator}" style="float: left">
+                        <img class="media-object img-rounded"
+                             th:src="${question.user.avatarUrl}"><!--${question.user.avatarUrl}-->
+
+                    </a>
+                    <div class="media-body" style="padding: 10px;text-align: center;">
+                        <h5 class="media-heading">
+                            <span th:text="${question.user.name}"></span>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            <!--微信号-->
+            <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <h4>关注微信公众号</h4>
+                <img src="/images/weixin.jpg" class="question-wechat img-thumbnail">
+            </div>
+            <!--相关问题-->
+            <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <h4>相关问题</h4>
+                <ul class="question-related">
+                    <li th:each="related:${relatedQuestions}">
+                        • <a th:href="@{'/question/'+${related.id}}" th:text="${related.title}"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="errorinfor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span>是否删除该文章？</span>
+        <a th:href="@{'/delectquestion/index/'+${question.id}}" style="cursor: pointer"class="glyphicon glyphicon-ok"> 是</a>
+        <span onclick="closeerror()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+<script type="text/javascript">
+    function delectcom(e) {
+        var id = e.getAttribute("data-id");
+        var commId = $("#comm-" + id);
+        var questionId = $('#question_id').val();
+        var obj = {
+            questionId:questionId,
+            id: id
+        };
+       $.ajax({
+           url: "/delectcomment",
+           type: 'POST',
+           dataType: 'json',
+           contentType: "application/json",
+           //async: true, //false 同步
+           data: JSON.stringify(obj),
+           success: function (result) {
+               if (result.code == '200') {
+                   $('commentCount').html(result.commentCount+"个回复")
+                   $(commId).hide();
+               }else{
+                   alert("发生错误！！！")
+               }
+           }
+       })
+    }
+    function quszan() {
+        var id = $('#question_id').val();
+        var upId = $('#upId').val();
+        var obj = {
+            id: id,
+            upId: upId
+        };
+        $.ajax({
+            url: "/quszan", // 后台短信发送接口
+            type: 'POST',
+            dataType: 'json',
+            contentType: "application/json",
+           // async: true, //false 同步，//ture异步
+            data: JSON.stringify(obj),
+            success: function (result) {
+                $('#qusId1').html(result.quscount)
+                if(result.isnotzan=='1'){
+                    document.getElementById("iszan").style.color="#5bc0de"
+                }else{
+                    document.getElementById("iszan").style.color="#333"
+                }
+            }
+        })
+    }
+    function showdelect(){
+        $('#errorinfor').show();
+    }
+    function closeerror(){
+        $('#errorinfor').hide();
+    }
+</script>
+</body>
+</html>

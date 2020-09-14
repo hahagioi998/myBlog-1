@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta charset="utf-8" />
+<meta name="viewport">
+<title>js鼠标滑</title>
+<link rel="stylesheet" href="/css/style.css">
+<script type="text/javascript" src="/js/style.js"></script>
+</head>
+<body>
+
+<div id="slideBar"></div>
+
+<script type="text/javascript">
+	var dataList = ["0","1"];
+	var options = {
+		dataList: dataList,
+		success:function(){  
+			console.log("show");  
+		},
+		fail: function(){
+			console.log("fail");  
+		}
+	};
+	SliderBar("slideBar", options);
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>标签操作</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+  <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<script type="application/javascript">
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+</script>
+<style>
+    .tag{
+        width: 120px;
+        position: absolute;
+        left: 100px;
+    }
+    .jiao{
+        transform: rotate(-90deg);
+    }
+    .bt_box{
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+        padding:50px;
+    }
+    .bt_box .gb{
+        display:inline-block;
+        width:120px;
+        height:35px;
+        border-radius: 8px;
+        background:#f3f3f3;
+        color:#444;
+        line-height: 35px;
+    }
+</style>
+<body>
+<div id="zhezhao" style="display:none;height: 100%;position: fixed;width: 100%;background: hsla(0, 0%, 17%, 0.57);z-index: 10;"></div>
+<div th:insert="~{navigation :: nav}"></div>
+<div style="width:80%;margin: 0 auto;min-height: 500px">
+         <div style="position: relative;">
+             <div style="width: 70px;float: left;">网站标签</div>
+             <div id="tag">
+                 <div th:each="tagclas : ${tagclass}">
+                     <div style="" class="tag">
+                       <span th:text="${tagclas.getCategoryName()}" style="display: inline-block;text-align: center;width: 56px;"></span>
+                       <span class="glyphicon glyphicon-plus addtag" style="z-index: 100"></span>
+                       <span class="glyphicon glyphicon-play opentag" style=" z-index: 100;transform: rotate(90deg); "></span>
+                     </div>
+                   <div style="width: 700px;position: absolute;margin-left: 250px" class="tagb1">
+                      <div th:each="tag:${tagclas.getTags()}" class="" style="width: 120px;float: left;margin: 0 20px 0 20px;">
+                         <span th:text="${tag.getName()}" style=" width: 100px;display: inline-block;" class="lable"></span>
+                         <a th:href="@{'/delect/lables/'+${tag.getId()}}"> <span class="glyphicon glyphicon-minus"></span></a>
+                      </div>
+                   </div>
+                 </div>
+             </div>
+         </div>
+</div>
+<div id="add" style="z-index:11;width:100%;height:350px;position:fixed;top:100px;display:none;border-radius: 5px;padding:40px;">
+    <div style="background: rgb(100,100,100);opacity:0.8;width:400px;margin:0 auto;height:100%;position:relative;">
+        <form action="/addlable" method="post">
+            <input type="text" id="cla" name="cla">
+            <input type="text" name="name">
+            <input type="submit">提交
+            <div class="bt_box">
+                <a class="gb" id="gb">关闭</a>
+            </div>
+        </form>
+        <div id="close" style="position:absolute;right:0px;top:0px;">
+            <span class="glyphicon glyphicon-remove" style="margin: 3px;"></span>
+        </div>
+    </div>
+</div>
+<div style="z-index:11;position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+<script>
+    var arr=document.getElementsByClassName('tag');
+    var lable=document.getElementsByClassName('lable');
+    var addtag=document.getElementsByClassName('addtag');
+    var opentag=document.getElementsByClassName('opentag');
+    var arr1=document.getElementsByClassName('tagb1');
+    var addtags=document.getElementsByClassName('addtag');
+    for(var i=0;i<opentag.length;i++){
+        arr[i].style.top=30*i+"px"
+        if(i>0){
+            arr1[i].style.display="none"
+        }
+    }
+
+  opentag[0].onclick=function (){
+      arr1[0].style.display="block";
+      arr1[1].style.display="none";
+      arr1[2].style.display="none";
+      arr1[3].style.display="none";
+      arr1[4].style.display="none";
+      arr1[5].style.display="none";
+  }
+  opentag[1].onclick=function (){
+      arr1[1].style.display="block";
+      arr1[0].style.display="none";
+      arr1[2].style.display="none";
+      arr1[3].style.display="none";
+      arr1[4].style.display="none";
+      arr1[5].style.display="none";
+  }
+  opentag[2].onclick=function (){
+      arr1[2].style.display="block";
+      arr1[1].style.display="none";
+      arr1[0].style.display="none";
+      arr1[3].style.display="none";
+      arr1[4].style.display="none";
+      arr1[5].style.display="none";
+  }
+  opentag[3].onclick=function (){
+      arr1[3].style.display="block";
+      arr1[1].style.display="none";
+      arr1[2].style.display="none";
+      arr1[0].style.display="none";
+      arr1[4].style.display="none";
+      arr1[5].style.display="none";
+  }
+  arr[4].onclick=function (){
+      arr1[4].style.display="block";
+      arr1[1].style.display="none";
+      arr1[2].style.display="none";
+      arr1[3].style.display="none";
+      arr1[0].style.display="none";
+      arr1[5].style.display="none";
+  }
+  opentag[5].onclick=function (){
+      arr1[5].style.display="block";
+      arr1[1].style.display="none";
+      arr1[2].style.display="none";
+      arr1[3].style.display="none";
+      arr1[0].style.display="none";
+      arr1[4].style.display="none";
+  }
+  var add=document.getElementById('add'),
+      gb=document.getElementById('gb');
+
+    gb.onclick = function() {
+        add.style.display = "none";
+    };
+    addtags[0].onclick=function () {
+        $('#cla').val("开发语言");
+        add.style.display="block";
+    }
+    addtags[1].onclick=function () {
+        $('#cla').val("平台框架");
+        add.style.display="block";
+    }
+    addtags[2].onclick=function () {
+        $('#cla').val("服务器");
+        add.style.display="block";
+    }
+    addtags[3].onclick=function () {
+        $('#cla').val("数据库");
+        add.style.display="block";
+    }
+    addtags[4].onclick=function () {
+        $('#cla').val("开发工具");
+        add.style.display="block";
+    }
+    addtags[5].onclick=function () {
+        $('#cla').val("其它");
+        add.style.display="block";
+    }
+</script>
+</body>
+</html>

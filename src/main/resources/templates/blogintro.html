@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title text="博客介绍"></title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+  <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<style>
+</style>
+<script type="application/javascript">
+    window.onload=function () {
+        //debugger;
+        var section2 = $('#section2').val();//利用input获取后台model里的值
+        if (section2 == "blogintro") {
+            $('#blogintro').addClass("active");
+        }
+    }
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+</script>
+<body>
+<input th:value="${section2}" style="display: none" id="section2">
+<div th:insert="~{navigation :: nav}"></div>
+<div class="container-fluid main" style="background-image: url('/images/snow_bk.jpg');background-size: 100% 100%;margin: 0 30px;">
+    <div style="min-height:610px;width:80%;margin:0 auto;min-width: 500px">
+         <div style="width:100%;height:200px;background-color: gainsboro;opacity: 0.5;margin-bottom:50px">
+              <span style="float: right;margin: 5px;" class="glyphicon glyphicon-wrench"></span>
+         </div>
+         <div style="height:120px;background: #F5F7FA;margin: 0 auto;border-style: solid;border-width: 0 1px;border-color: #8FC0D3;">
+             <div style=" position: relative;float: left;width:600px;height:100%">
+                 <div style="width: 150px;height:150px;position: absolute;top: -65px; left: 17px;">
+                     <a style="display: block;text-decoration: none;background-color:white;height: 150px;padding: 5px;width: 150px;pointer-events: cursor;">
+                         <img src="/images/weixin.jpg" style=" border-radius: 4px;width:140px;height: 140px ;">
+                     </a>
+                 </div>
+                 <div style="float: left;min-width: 400px;height:120px;margin-left: 170px">
+                     <div style="width: 100%;height: 36px;margin-left: 10px">
+                         <div style="margin-top: 10px;font-size: 18px;line-height: 26px;float: left">
+                             <span>微信公众号</span>
+                         </div>
+                     </div>
+                     <div style="height: 30px;margin-top: 20px;color: #797C80;">
+                         <p>微信号：朱豪杰的个人博客</p>
+                     </div>
+                 </div>
+             </div>
+         </div>
+        <hr style="margin: 0">
+        <div style="padding: 10px;background: #F5F7FA;min-height:150px;border-style: solid;border-width: 0 1px;border-color: #8FC0D3;">
+            <p style="margin-left: 30px;">小编是一个西南大学大三学生，喜欢IT技术，正在不断学习中，希望能有志同道合的人一起交流，不断进步</p>
+            <p>在这个订阅号中包含但不仅限于JAVA,SpringBoot，框架，软件，性能优化等。</p>
+            <p>网站会不断的丰富其功能，订阅号也是，有兴趣的可以关注一波，一起学习，一起讨论</p>
+        </div>
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+<script>
+
+</script>
+</body>
+</html>

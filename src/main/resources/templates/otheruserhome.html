@@ -1,0 +1,384 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${otherUser.getName()}+'的个人主页'"></title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+  <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<style>
+    .bt_box{
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+        padding:50px;
+    }
+    .bt_box .gb{
+        display:inline-block;
+        width:120px;
+        height:35px;
+        border-radius: 8px;
+        background:#f3f3f3;
+        color:#444;
+        line-height: 35px;
+    }
+    .bt_box .queren{
+        display: inline-block;
+        width:120px;
+        height:35px;
+        border-radius: 8px;
+        background:#4B8BF5;
+        color:#fff;
+        line-height: 35px;
+        border-width: 0px;
+    }
+    .preview{
+        width: 150px;
+    }
+    .preview img{
+        margin: 5px 0;
+        width: 100%;
+    }
+</style>
+<script type="application/javascript">
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+</script>
+<body>
+<div th:insert="~{navigation :: nav}"></div>
+<div class="container-fluid main" style="background-image: url('/images/snow_bk.jpg');background-size: 100% 100%;">
+    <div style="min-height:620px;width:80%;margin:0 auto;min-width: 500px">
+        <div style="width:100%;height:200px;background-color: gainsboro;opacity: 0.5;margin-bottom:50px">
+
+        </div>
+        <div style="background: #F5F7FA;margin: 0 auto;">
+              <div class="col-lg-8 col-md-12 col-sm-12 col-xs-12" style="height:120px; border-bottom: 1px solid;background: #F5F7FA;">
+                  <div style="width: 150px;height:150px;position: absolute;top: -65px; left: 17px;">
+                     <a style="display: block;text-decoration: none;background-color:white;height: 150px;padding: 5px;width: 150px;pointer-events:cursor">
+                         <img th:src="${otherUser.getAvatarUrl()}" style=" border-radius: 4px;width:140px;height: 140px ;">
+                     </a>
+                  </div>
+                  <div style="float: left;min-width: 400px;height:120px;margin-left: 170px">
+                      <div style="width: 100%;height: 36px;margin-left: 10px">
+                        <div style="margin-top: 10px;font-size: 18px;line-height: 26px;float: left">
+                          <span th:text="${otherUser.getName()}"></span>
+                        </div>
+                          <span th:if="${attentionId==-1}">
+                            <a onclick="nologin()" style="cursor: pointer;width: 72px;height: 28px;float: left;margin: 10px 0 0 20px;padding: 5px 10px 5px 10px;background: #ccc;">
+                               <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+                               <span>关注</span>
+                            </a>
+                          </span>
+                          <span th:if="${attentionId==0}">
+                            <a th:href="@{'/attention/'+ ${otherUser.getId()}}" style="cursor: pointer;width: 72px;height: 28px;float: left;margin: 10px 0 0 20px;padding: 5px 10px 5px 10px;background: #ccc;">
+                               <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+                               <span>关注</span>
+                            </a>
+                          </span>
+                          <span th:if="${attentionId>0}">
+                            <a th:href="@{/disattention(attentionId=${attentionId},otherUserId=${otherUser.getId()})}" style="cursor: pointer;width:102px;height: 28px;float: left;margin: 10px 0 0 20px;padding: 5px 10px 5px 10px;background: #ccc;">
+                               <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"></span>
+                               <span>取消关注</span>
+                            </a>
+                           </span>
+                           <sapn th:if="${attentionId!=-1}">
+                               <a th:href="@{'/chat/'+ ${otherUser.getId()}}" style="cursor: pointer;width:102px;height: 28px;float: left;margin: 10px 0 0 20px;padding: 5px 10px 5px 10px;background: #ccc;">
+                                  <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+                                   <span>私信</span>
+                               </a>
+                           </sapn>
+                          <sapn th:if="${attentionId==-1}">
+                              <a onclick="nologin()" style="cursor: pointer;width:102px;height: 28px;float: left;margin: 10px 0 0 20px;padding: 5px 10px 5px 10px;background: #ccc;">
+                                  <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+                                  <span>私信</span>
+                              </a>
+                          </sapn>
+                      </div>
+                      <div style="height: 30px;margin-top: 20px;color: #797C80;">
+                          <ul style=" list-style: none;">
+                              <li style="float: left;border-color: #CCC;border-style: solid; border-width: 0 1px 0 0;margin: 0 10px 2px 9px;padding-right: 15px" th:text="${otherUser.getName()}"></li>
+                              <li style="float: left;border-color: #CCC;border-style: solid; border-width: 0 1px 0 0;margin: 0 10px 2px 9px;padding-right: 15px"><a th:href="@{'/otheruserhome/tie/'+ ${otherUser.getId()}}">发帖</a><pan th:text="${totalCount}"></pan></li>
+                              <li style="float: left;border-color: #CCC;border-style: solid;border-width: 0 1px 0 0;margin: 0 10px 2px 9px;padding-right: 15px"><a th:href="@{'/otheruserhome/attentioned/'+ ${otherUser.getId()}}">粉丝</a><span th:text="${attentionheCount}"></span></li>
+                              <li style="float: left;margin: 0 10px 2px 9px;"><a th:href="@{'/otheruserhome/attention/'+ ${otherUser.getId()}}">关注</a><span th:text="${heattentionCount}"></span></li>
+                          </ul>
+                      </div>
+                  </div>
+
+              </div>
+              <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12" style="position: relative;padding: 5px;height:120px;background: #F5F7FA;border-bottom: 1px solid;">
+                  <div id="yiwen" style="width: 276px;height: 110px;background: #ccc;position: absolute;right: 0px;display: none;top: -110px;border-radius: 5px;padding: 5px;">
+                      <span onclick="hideyiwen()" class="glyphicon glyphicon-remove" style="cursor: pointer"></span>
+                      <div>
+                          发表帖子 +10分，帖子每获100个赞加1分；评论 +1分；
+                          积分可以下载资源文件和程序。
+                      </div>
+                  </div>
+                  <div style="float: left;">
+                      <span class="glyphicon glyphicon-piggy-bank">积分：</span>
+                      <span th:text="${otherUser.getIntegral()}"></span>
+                  </div>
+                  <span onclick="showyiwen()" style="float: right;cursor: pointer" class="glyphicon glyphicon-question-sign"></span>
+              </div>
+         </div>
+         <div style="margin: 0 auto;">
+             <div class="col-lg-8 col-md-12 col-sm-12 col-xs-12" style="height: 389px;border-color: #CCC;border-style: solid;border-width: 0 1px 0 0;background: #F5F7FA;">
+                 <ul class="nav nav-tabs" th:if="${section=='tie'}">
+                     <li role="presentation" class="active"><a th:href="@{'/otheruserhome/tie/'+ ${otherUser.getId()}}">他的发帖</a></li>
+                     <li role="presentation"><a th:href="@{'/otheruserhome/attention/'+ ${otherUser.getId()}}">他的关注</a></li>
+                     <li role="presentation"><a th:href="@{'/otheruserhome/attentioned/'+ ${otherUser.getId()}}">他的粉丝</a></li>
+                     <li role="presentation" style=" height: 42px; margin: -5px 0 0px 50px;">
+                         <form class="navbar-form navbar-left" action="/otheruserhome/" method="get">
+                             <div class="form-group">
+                                 <input type="text" class="form-control" placeholder="输入关键字" name="search">
+                                 <input type="text" name="otherUserId" style="display: none" th:value="${otherUser.getId()}">
+                             </div>
+                             <button type="submit" class="btn btn-default">搜索</button>
+                          </form>
+                     </li>
+                 </ul>
+                 <ul class="nav nav-tabs" th:if="${section=='attention'}">
+                     <li role="presentation"><a th:href="@{'/otheruserhome/tie/'+ ${otherUser.getId()}}">他的发帖</a></li>
+                     <li role="presentation" class="active"><a th:href="@{'/otheruserhome/attention/'+ ${otherUser.getId()}}">他的关注</a></li>
+                     <li role="presentation"><a th:href="@{'/otheruserhome/attentioned/'+ ${otherUser.getId()}}">他的粉丝</a></li>
+                     <li role="presentation" style=" height: 42px; margin: -5px 0 0px 50px;">
+                         <form class="navbar-form navbar-left" action="/otheruserhome/" method="get">
+                             <div class="form-group">
+                                 <input type="text" class="form-control" placeholder="输入关键字" name="search">
+                                 <input type="text" name="otherUserId" style="display: none" th:value="${otherUser.getId()}">
+                             </div>
+                             <button type="submit" class="btn btn-default">搜索</button>
+                         </form>
+                     </li>
+                 </ul>
+                 <ul class="nav nav-tabs" th:if="${section=='attentioned'}">
+                     <li role="presentation"><a th:href="@{'/otheruserhome/tie/'+ ${otherUser.getId()}}">他的发帖</a></li>
+                     <li role="presentation"><a th:href="@{'/otheruserhome/attention/'+ ${otherUser.getId()}}">他的关注</a></li>
+                     <li role="presentation" class="active"><a th:href="@{'/otheruserhome/attentioned/'+ ${otherUser.getId()}}">他的粉丝</a></li>
+                     <li role="presentation" style=" height: 42px; margin: -5px 0 0px 50px;">
+                         <form class="navbar-form navbar-left" action="/otheruserhome/" method="get">
+                             <div class="form-group">
+                                 <input type="text" class="form-control" placeholder="输入关键字" name="search">
+                                 <input type="text" name="otherUserId" style="display: none" th:value="${otherUser.getId()}">
+                             </div>
+                             <button type="submit" class="btn btn-default">搜索</button>
+                         </form>
+                     </li>
+                 </ul>
+                 <div style="min-height: 190px; padding: 5px;" th:if="${section1=='tie'}">
+                    <span th:if="${pagination.data.size()!=0}">
+                       <span style="height: 300px;display: inline-block">
+                        <div class="media" th:each="question : ${pagination.data}">
+                         <div class="media-left">
+                             <a th:href="@{'/otheruserhome/tie/'+${otherUser.getId()}}">
+                                 <img class="media-object img-rounded" th:src="${question.user.getAvatarUrl()}">
+                             </a>
+                         </div>
+                         <div class="media-body">
+                             <h5 class="media-heading">
+                                 <a th:href="@{'/question/'+ ${question.id}}" th:text="${question.title}"></a>
+                             </h5>
+                             <span class="text-desc">
+                             <span th:text="${question.commentCount}"></span> 个回复 •
+                                 <!--对-->
+                             <span th:text="${question.viewCount}"></span> 次浏览 •
+                             <span th:text="${#dates.format(question.gmtCreate,'yyyy-MM-dd HH:mm')}"></span>
+                                <a th:href="@{'/publish/'+${question.id}}" class="community-menu" th:if="${session.user!=null&&session.user.id==question.creator}">
+                                  <span class="glyphicon glyphicon-pencil" aria-hidden="true">编辑</span>
+                                </a>
+                             </span>
+                         </div>
+                        </div>
+                     </span>
+                      <nav aria-label="Page navigation" style="">
+                          <ul class="pagination">
+                              <li th:if="${pagination.showFirstPage}">
+                                  <a th:href="@{'/otheruserhome/tie/'+${otherUser.getId()}(page=1,search=${search},tag=${tag})}" aria-label="Previous">
+                                       <span aria-hidden="true">&lt;&lt;</span>
+                                  </a>
+                               </li>
+                               <li th:if="${pagination.showPrevious}">
+                                    <a th:href="@{'/otheruserhome/tie/'+${otherUser.getId()}(page=${pagination.page - 1},search=${search},tag=${tag})}" aria-label="Previous">
+                                        <span aria-hidden="true">&lt;</span>
+                                    </a>
+                               </li>
+                               <li th:each="page:${pagination.pages}" th:class="${pagination.page==page}? 'active' : ''">
+                                   <a th:href="@{'/otheruserhome/tie/'+${otherUser.getId()}(page=${page},search=${search},tag=${tag})}" th:text="${page}"></a>
+                               </li>
+                               <li th:if="${pagination.showNext}">
+                                    <a th:href="@{'/otheruserhome/tie/'+${otherUser.getId()}(page=${pagination.page + 1},search=${search},tag=${tag})}" aria-label="Previous">
+                                          <span aria-hidden="true">&gt;</span>
+                                    </a>
+                                </li>
+                                <li th:if="${pagination.showEndPage}">
+                                      <a th:href="@{'/otheruserhome/tie/'+${otherUser.getId()}(page=${pagination.totalPage},search=${search},tag=${tag})}" aria-label="Previous">
+                                          <span aria-hidden="true">&gt;&gt;</span>
+                                       </a>
+                                 </li>
+                              </ul>
+                         </nav>
+                   </span>
+                   <div th:if="${pagination.data.size()==0}" stytle="text-align: center;margin-top: 30px;">
+                       空空如也~
+                   </div>
+                 </div >
+                 <div style="min-height: 190px; padding: 5px;" th:if="${section1=='attention'}">
+                    <span th:if="${pagination.data.size()!=0}">
+                      <span style="height: 300px;display: inline-block">
+                         <div style=" width: 100%;float: left;">
+                         <div style="width:60px;float: left;margin-right: 10px;text-align: center;" th:each="user : ${pagination.data}">
+                          <div class="media-body" style="width: 50px;height: 50px">
+                              <a class="img_container" th:href="@{'/otheruserhome/tie/'+${user.id}}" style="border-radius: 4px;display: block;text-decoration: none;background-color: white;height: 60px;cursor: pointer; width: 60px;">
+                                  <img th:src="${user.avatarUrl}" th:alt="${user.name}" style="width: 50px;height:50px;  border-radius: 4px;">
+                                  <div class="mask" th:text="${user.name}" style="margin-left: 5px;"></div>
+                              </a>
+                          </div>
+                        </div>
+                      </div>
+                      </span>
+                      <nav aria-label="Page navigation" style="">
+                          <ul class="pagination">
+                              <li th:if="${pagination.showFirstPage}">
+                                  <a th:href="@{/otheruserhome(page=1,search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                       <span aria-hidden="true">&lt;&lt;</span>
+                                  </a>
+                               </li>
+                               <li th:if="${pagination.showPrevious}">
+                                    <a th:href="@{/otheruserhome(page=${pagination.page - 1},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                        <span aria-hidden="true">&lt;</span>
+                                    </a>
+                               </li>
+                               <li th:each="page:${pagination.pages}" th:class="${pagination.page==page}? 'active' : ''">
+                                   <a th:href="@{/otheruserhome(page=${page},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" th:text="${page}"></a>
+                               </li>
+                               <li th:if="${pagination.showNext}">
+                                    <a th:href="@{/otheruserhome(page=${pagination.page + 1},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                          <span aria-hidden="true">&gt;</span>
+                                    </a>
+                                </li>
+                                <li th:if="${pagination.showEndPage}">
+                                      <a th:href="@{/otheruserhome(page=${pagination.totalPage},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                          <span aria-hidden="true">&gt;&gt;</span>
+                                       </a>
+                                 </li>
+                              </ul>
+                         </nav>
+                   </span>
+                     <div th:if="${pagination.data.size()==0}" stytle="text-align: center;margin-top: 30px;">
+                         空空如也~
+                     </div>
+                 </div>
+                 <div style="min-height: 190px; padding: 5px;" th:if="${section1=='attentioned'}">
+                    <span th:if="${pagination.data.size()!=0}">
+                      <span style="height: 300px;display: inline-block">
+                       <div style=" width: 100%;float: left;">
+                         <div style="width:60px;float: left;margin-right: 10px;text-align: center;" th:each="user : ${pagination.data}">
+                         <div class="media-body" style="width: 50px;height: 50px">
+                            <a class="img_container" th:href="@{'/otheruserhome/tie/'+${user.id}}" style="border-radius: 4px;display: block;text-decoration: none;background-color: white;height: 60px;cursor: pointer; width: 60px;">
+                                <img th:src="${user.avatarUrl}" style="width: 50px;height:50px;  border-radius: 4px;">
+                                <div class="mask" th:text="${user.name}" style="margin-left: 5px"></div>
+                            </a>
+                         </div>
+                        </div>
+                       </div>
+                      </span>
+                       <nav aria-label="Page navigation" style="">
+                          <ul class="pagination">
+                              <li th:if="${pagination.showFirstPage}">
+                                  <a th:href="@{/otheruserhome(page=1,search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                       <span aria-hidden="true">&lt;&lt;</span>
+                                  </a>
+                               </li>
+                               <li th:if="${pagination.showPrevious}">
+                                    <a th:href="@{/otheruserhome(page=${pagination.page - 1},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                        <span aria-hidden="true">&lt;</span>
+                                    </a>
+                               </li>
+                               <li th:each="page:${pagination.pages}" th:class="${pagination.page==page}? 'active' : ''">
+                                   <a th:href="@{/otheruserhome(page=${page},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" th:text="${page}"></a>
+                               </li>
+                               <li th:if="${pagination.showNext}">
+                                    <a th:href="@{/otheruserhome(page=${pagination.page + 1},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                          <span aria-hidden="true">&gt;</span>
+                                    </a>
+                                </li>
+                                <li th:if="${pagination.showEndPage}">
+                                      <a th:href="@{/otheruserhome(page=${pagination.totalPage},search=${search},tag=${tag},otherUserId=${otherUser.getId()})}" aria-label="Previous">
+                                          <span aria-hidden="true">&gt;&gt;</span>
+                                       </a>
+                                 </li>
+                              </ul>
+                         </nav>
+                   </span>
+                     <div th:if="${pagination.data.size()==0}" stytle="text-align: center;margin-top: 30px;">
+                         空空如也~
+                     </div>
+                 </div>
+             </div>
+             <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12" style="height: 389px;background: #F5F7FA;">
+                 <h4 style="text-align: center">推荐</h4>
+                 <div th:if="${questionstuijian!=null}">
+                     <ul class="question-related">
+                         <li th:each="question:${questionstuijian}" style="    margin: 4px;">
+                             • <a th:href="@{'/question/'+${question.id}}" th:text="${question.title}"></a>
+                         </li>
+                     </ul>
+                 </div>
+                 <div th:if="${questionstuijian==null}" style="margin-top:20px;text-align: center ">
+                     空空如也~
+                 </div>
+             </div>
+         </div>
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+<script>
+    function showyiwen() {
+        $('#yiwen').show();
+    }
+    function hideyiwen() {
+        $('#yiwen').hide();
+    }
+</script>
+</body>
+</html>

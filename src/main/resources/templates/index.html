@@ -1,0 +1,290 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>个人博客</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="css/community.css">
+    <script src="js/jquery-3.4.1.min.js" type="application/javascript"></script>
+  <script src="js/bootstrap.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<style>
+    #tag0{
+        top: 0;
+        position: absolute;
+        background: rgb(213,26,33);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(-26deg);
+        -ms-transform: rotate(-26deg);
+        -moz-transform: rotate(-26deg);
+        -webkit-transform: rotate(-26deg);
+        -o-transform: rotate(-26deg);
+    }
+    #tag1{
+        top: 25px;
+        left: 120px;
+        position: absolute;
+        background: rgb(245,67,101);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(-5deg);
+        -ms-transform: rotate(-5deg);
+        -moz-transform: rotate(-5deg);
+        -webkit-transform: rotate(-5deg);
+        -o-transform: rotate(-5deg);
+    }
+    #tag2{
+        background: rgb(252,157,154);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(20deg);
+        -ms-transform: rotate(20deg);
+        -moz-transform: rotate(20deg);
+        -webkit-transform: rotate(20deg);
+        -o-transform: rotate(20deg);
+        top: 50px;
+        position: absolute;
+        left: 35px;
+    }
+    #tag3{
+        background: rgb(249,205,173);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(-20deg);
+        -ms-transform: rotate(-20deg);
+        -moz-transform: rotate(-20deg);
+        -webkit-transform: rotate(-20deg);
+        -o-transform: rotate(-20deg);
+        top: 90px;
+        position: absolute;
+        left: 85px;
+    }
+    #tag4{
+        background: rgb(200,200,169);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(-5deg);
+        -ms-transform: rotate(-5deg);
+        -moz-transform: rotate(-5deg);
+        -webkit-transform: rotate(-5deg);
+        -o-transform: rotate(-5deg);
+        top: 130px;
+        position: absolute;
+        left: 55px;
+    }
+    #tag5{
+        background: rgb(131,175,155);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(15deg);
+        -ms-transform: rotate(15deg);
+        -moz-transform: rotate(15deg);
+        -webkit-transform: rotate(15deg);
+        -o-transform: rotate(15deg);
+        top: 160px;
+        position: absolute;
+        left: 15px;
+    }
+    #tag6{
+        background: rgb(147,224,255);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(-26deg);
+        -ms-transform: rotate(-26deg);
+        -moz-transform: rotate(-26deg);
+        -webkit-transform: rotate(-26deg);
+        -o-transform: rotate(-26deg);
+        top: 200px;
+        position: absolute;
+        left: 105px;
+    }
+    #tag7{
+        background: rgb(199,237,233);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(16deg);
+        -ms-transform: rotate(16deg);
+        -moz-transform: rotate(16deg);
+        -webkit-transform: rotate(16deg);
+        -o-transform: rotate(16deg);
+        top: 240px;
+        position: absolute;
+        left: 55px;
+    }
+    #tag8{
+        background: rgb(175,215,237);
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(-16deg);
+        -ms-transform: rotate(-16deg);
+        -moz-transform: rotate(-16deg);
+        -webkit-transform: rotate(-16deg);
+        -o-transform: rotate(-16deg);
+        top: 270px;
+        position: absolute;
+        left: 15px;
+    }
+    #tag9{
+        background: rgb(185,227,217);
+        display: block;
+        margin: 20px;
+        min-width: 100px;
+        text-align: center;
+        transform: rotate(16deg);
+        -ms-transform: rotate(16deg);
+        -moz-transform: rotate(16deg);
+        -webkit-transform: rotate(16deg);
+        -o-transform: rotate(16deg);
+        top: 300px;
+        position: absolute;
+        left: 125px;
+    }
+</style>
+<script type="application/javascript">
+    window.onload=function () {
+        //debugger;
+        var section2 = $('#section2').val();//利用input获取后台model里的值
+        if(section2=="home") {
+            $('#home').addClass("active");
+        }
+        var closable=window.localStorage.getItem("closable");
+        if(closable=="true"){
+            window.close();
+            window.localStorage.removeItem("closable");
+        }
+    }
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+
+</script>
+<body>
+<input th:value="${section2}" style="display: none" id="section2">
+<div th:insert="~{navigation :: nav}"></div>
+<div class="container-fluid main" style="min-height: 600px;border-radius: 4px;margin: 0 30px;">
+    <div class="row">
+        <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12">
+            <h2><span class="glyphicon glyphicon-th-list" aria-hidden="true" style="margin-right: 10px;"></span>发现</h2>
+            <hr>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="    height: 384px;">
+                <span th:if="${pagination}!=null">
+                    <div class="media" th:each="question : ${pagination.data}">
+                  <div class="media-left">
+                     <a class="img_container" th:if="${session.user!=null&&session.user.id==question.creator}" href="/userhome/home/" style="border-radius: 4px;display: block;text-decoration: none;background-color: white;height: 50px;cursor: pointer; width: 50px;">
+                       <img class="media-object img-rounded" th:src="${question.user.avatarUrl}" style="width: 50px;height: 50px">
+                       <div class="mask" th:text="${question.user.name}"></div>
+                     </a>
+                     <a class="img_container" th:if="${session.user!=null&&session.user.id!=question.creator}" th:href="@{'/otheruserhome/tie/'+ ${question.user.id}}" style="border-radius: 4px;display: block;text-decoration: none;background-color: white;height: 50px;cursor: pointer; width: 50px;">
+                       <img class="media-object img-rounded" th:src="${question.user.avatarUrl}" style="width: 50px;height: 50px">
+                       <div class="mask" th:text="${question.user.name}"></div>
+                     </a>
+                      <a class="img_container" th:if="${session.user==null}" th:href="@{'/otheruserhome/tie/'+ ${question.user.id}}" style="border-radius: 4px;display: block;text-decoration: none;background-color: white;height: 50px;cursor: pointer; width: 50px;">
+                       <img class="media-object img-rounded" th:src="${question.user.avatarUrl}" style="width: 50px;height: 50px">
+                       <div class="mask" th:text="${question.user.name}"></div>
+                     </a>
+                  </div>
+                  <div class="media-body media-body1">
+                     <h5 class="media-heading" style="line-height: 23px;">
+                       <a th:href="@{'/question/'+ ${question.id}}" th:text="${question.title}"></a>
+                     </h5>
+                     <span class="text-desc"><span th:text="${question.commentCount}"></span> 个回复 • <span
+                        th:text="${question.viewCount}"></span> 次浏览 • <span
+                        th:text="${#dates.format(question.gmtCreate,'yyyy-MM-dd HH:mm')}"></span></span>
+                  </div>
+               </div>
+                </span>
+            </div>
+           <nav aria-label="Page navigation" style="">
+               <ul class="pagination">
+                   <li th:if="${pagination.showFirstPage}">
+                       <a th:href="@{/(page=1,search=${search},tag=${tag})}" aria-label="Previous">
+                           <span aria-hidden="true">&lt;&lt;</span>
+                       </a>
+                   </li>
+                   <li th:if="${pagination.showPrevious}">
+                       <a th:href="@{/(page=${pagination.page - 1},search=${search},tag=${tag})}" aria-label="Previous">
+                           <span aria-hidden="true">&lt;</span>
+                       </a>
+                   </li>
+
+                   <li th:each="page:${pagination.pages}" th:class="${pagination.page==page}? 'active' : ''">
+                       <a th:href="@{/(page=${page},search=${search},tag=${tag})}" th:text="${page}"></a>
+                   </li>
+                   <li th:if="${pagination.showNext}">
+                       <a th:href="@{/(page=${pagination.page + 1},search=${search},tag=${tag})}" aria-label="Previous">
+                           <span aria-hidden="true">&gt;</span>
+                       </a>
+                   </li>
+                   <li th:if="${pagination.showEndPage}">
+                       <a th:href="@{/(page=${pagination.totalPage},search=${search},tag=${tag})}" aria-label="Previous">
+                           <span aria-hidden="true">&gt;&gt;</span>
+                       </a>
+                   </li>
+               </ul>
+           </nav>
+        </div>
+        <div class="col-lg-3 col-md-12 col-sm-12 col-xs-12">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <h3 style="  padding-bottom: 10px;">热门标签</h3>
+                <hr>
+                <div style="width: 90%;">
+                   <ul class="question-related" style="height: 400px;width:300px;position:relative;margin: 0 auto">
+                     <li th:each="tag:${tags}">
+                        <a th:href="@{/(page=1,search=${search},tag=${tag})}" th:text="${tag}" th:id="'tag'+${tags.indexOf(tag.toString())}"></a>
+                     </li>
+                   </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+</body>
+</html>

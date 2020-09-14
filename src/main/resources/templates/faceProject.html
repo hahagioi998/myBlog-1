@@ -1,0 +1,248 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>百度人脸识别</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+    <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<style>
+    .bt_box{
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+        padding:50px;
+    }
+    .bt_box .gb{
+        display:inline-block;
+        width:120px;
+        height:35px;
+        border-radius: 8px;
+        background:#f3f3f3;
+        color:#444;
+        line-height: 35px;
+    }
+    .bt_box .queren{
+        display: inline-block;
+        width:120px;
+        height:35px;
+        border-radius: 8px;
+        background:#4B8BF5;
+        color:#fff;
+        line-height: 35px;
+        border-width: 0px;
+    }
+   /* .preview{
+        width: 150px;
+    }*/
+    .preview img{
+        margin: 5px 0;
+        width: 100%;
+    }
+    .file {
+        position: absolute;
+        height: 150px;
+        width: 150px;
+        opacity: 0;
+        display: inline-block;
+        background: #D0EEFF;
+        border: 1px solid #99D3F5;
+        border-radius: 4px;
+        overflow: hidden;
+        color: #1E88C7;
+        text-decoration: none;
+        text-indent: 0;
+        line-height: 20px;
+    }
+    .file input {
+        position: absolute;
+        font-size: 100px;
+        right: 0;
+        top: 0;
+        opacity: 0;
+    }
+    .file:hover {
+        background: #AADFFD;
+        border-color: #78C3F3;
+        color: #004974;
+        text-decoration: none;
+    }
+</style>
+<script type="application/javascript">
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+</script>
+<body>
+<div th:insert="~{navigation :: nav}"></div>
+
+<div id="touxiang" style="height:600px;border-radius: 5px;padding:60px;" class="container-fluid main">
+      <div style="width:580px;margin: 0 auto; ">
+        <div style=" height: 200px;margin:30px;float: left;width: 150px;position: relative;    ">
+            <div class="file" style="    z-index: 10;cursor: pointer">
+                <input type="file" id="uploadImg1" onchange="xmTanUploadImg1(this)" name="uploadImg1" style="width: 150px;height: 150px;">
+            </div>
+            <img src="/images/img.jpg" alt="" id="selectImg" style="  width: 150px;height: 150px;border-radius: 5px;">
+            <img src="" alt="" id="selectImg1" style=" top: 0; width:150px;height:150px;border-radius: 5px;    position: absolute;
+    left: 0;    cursor: pointer;">
+            <div id="img1con" style="height: 200px;text-align: center">
+                选手一
+            </div>
+            <div id="img1championappearance" style="text-align: center"></div>
+        </div>
+        <div style="width: 150px;float: left;margin-top: 100px; text-align: center;">
+            <div id="imgpk" style="height: 100px;">
+                <a onclick="facepk(callback())" style="cursor: pointer">颜值pk</a>
+            </div>
+            <div style="display: none" id="guan">
+                冠军
+                <div id="guanjun"></div>
+                <img src="" style="border-radius: 50%;width: 60px;height: 60px" id="guanjunimg">
+            </div>
+        </div>
+        <div style="float: left;margin:30px;  width: 150px;position: relative; ">
+            <div class="file" style="    z-index: 10;cursor: pointer">
+                <input type="file" id="uploadImg2" onchange="xmTanUploadImg2(this)" name="uploadImg2" style="width: 150px;height: 150px;">
+            </div>
+            <img src="/images/img.jpg" alt="" id="selectImg3" style=" width: 150px;height: 150px;border-radius: 5px;">
+            <img src="" alt="" id="selectImg2" style=" top: 0; width:150px;height:150px;    position: absolute;
+    left: 0;    cursor: pointer;">
+            <div id="img2con" style="height: 200px;text-align: center">
+               选手二
+            </div>
+            <div id="img2championappearance" style="text-align: center"></div>
+        </div>
+       </div>
+    </form>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+<script>
+    var imgData;
+    var imgData1;
+    var img1;
+    var img2;
+
+    var img1con = $("#img1con");
+    var img1championappearance = $("#img1championappearance");
+    var guanjun = $("#guanjun");
+    var guanjunimg = $("#guanjunimg");
+    var img2con = $("#img2con");
+    var img2championappearance = $("#img2championappearance");
+    function xmTanUploadImg1(obj) {
+        var file = obj.files[0];
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (e) {
+            img1= document.getElementById("selectImg1");
+            img1.src = e.target.result;
+            imgData = img1.src ;
+            //alert(img.src)
+        };
+    }
+    function xmTanUploadImg2(obj) {
+        var file = obj.files[0];
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (e) {
+            img2 = document.getElementById("selectImg2");
+            img2.src = e.target.result;
+            imgData1 = img2.src;
+        };
+    }
+    function facepk(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var obj = {
+                img:imgData.split(",")[1],
+                img1:imgData1.split(",")[1]
+            };
+            $.ajax({
+                url: "/face3", // 后台短信发送接口
+                type: 'POST',
+                dataType: 'json',
+                contentType: "application/json",
+                async: false, //false 同步
+                data: JSON.stringify(obj),
+                success: function (result) {
+                    //页面添加
+                    if(result.champion=="img"){
+                        $(img1con).html(result.talk1)
+                        $(img2con).html(result.talk2)
+                        $(img1championappearance).html(result.championappearance)
+                        $(img2championappearance).html(result.runnerupappearance)
+                        $("#guan").show();
+                        $(guanjun).html(result.championappearance)
+                        // guanjunimg.src=img1.src
+                        document.getElementById("guanjunimg").src=document.getElementById("selectImg1").src
+                        $("#loading").hide()
+                    }else if(result.champion=="img0"){
+                        $(img1con).html(result.talk1)
+                        $(img2con).html(result.talk2)
+                        $(img1championappearance).html(result.championappearance)
+                        $(img2championappearance).html(result.runnerupappearance)
+                        $("#guan").show();
+                        $(guanjun).html(result.runnerupappearance)
+                        $("#loading").hide()
+                    }else{
+                        $(img1con).html(result.talk1)
+                        $(img2con).html(result.talk2)
+                        $(img2championappearance).html(result.runnerupappearance)
+                        $(img1championappearance).html(result.championappearance)
+                        $("#guan").show();
+                        $(guanjun).html(result.runnerupappearance)
+                        document.getElementById("guanjunimg").src=document.getElementById("selectImg2").src
+                        $("#loading").hide()
+                    }
+                }
+            })
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+
+
+</script>
+</body>
+</html>

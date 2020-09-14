@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>后台管理</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/echarts.js"></script>
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+    <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+</head>
+<script type="application/javascript">
+    window.onload=function () {
+        //debugger;
+        var manager = $('#manager').val();//利用input获取后台model里的值
+        if (manager == "posts") {
+            $('#posts').addClass("disabled");
+        }else if(manager == "lables"){
+            $('#lables').addClass("disabled");
+        }
+        else if(manager == "intor"){
+            $('#intor').addClass("disabled");
+        }
+        else if(manager == "project"){
+            $('#project').addClass("disabled");
+        }
+        else if(manager == "users"){
+            $('#users').addClass("disabled");
+        }
+        else if(manager == "chart"){
+            $('#chart').addClass("disabled");
+        }
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+
+</script>
+<body>
+<input th:value="${manager}" style="display: none" id="manager">
+<div id="zhezhao" style="display:none;height: 100%;position: fixed;width: 100%;background: hsla(0, 0%, 17%, 0.57);z-index: 10;"></div>
+<div th:insert="~{navigation :: nav}"></div>
+<div class="container-fluid main">
+    <div class="row" style=" background: #ccc;min-height: 560px;padding-top: 15px;">
+        <div class="col-lg-2 col-md-12 col-sm-12 col-xs-12">
+            <div class="list-group" style=" width: 170px;">
+                <span th:each="root1:${roots1}">
+                   <a  th:href="'/admin/'+${root1.eng}" id="posts" th:text="${root1.cha}" class="list-group-item" style="text-align: center;"></a>
+                </span>
+            </div>
+        </div>
+        <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+            <div th:if="${manager=='posts'}">
+                <form class="navbar-form navbar-left" action="/admin/posts/" method="get">
+                    <div class="form-group">
+                        <input type="text" style="width: 300px;" class="form-control" placeholder="输入关键字" name="search">
+                    </div>
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </form>
+                <button type="button" class="btn btn-default" style="margin-top: 8px;"><a href="/excelchu/posts">导出</a></button>
+                <button type="button" class="btn btn-default" style="margin-top: 8px;"><a href="/excelru/posts">导入</a></button>
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th style="width: 80px;">作者</th>
+                        <th>标题</th>
+                        <th>时间</th>
+                        <th>标签</th>
+                        <th style="width: 130px;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <span th:each="question : ${pagination.data}">
+                          <tr>
+                             <th scope="row" th:text="${question.user.id}"></th>
+                             <td th:text="${question.user.name}"></td>
+                             <td th:text="${question.title}"></td>
+                              <td th:text="${#dates.format(question.gmtCreate,'yyyy-MM-dd HH:mm')}"></td>
+                              <td th:text="${question.tag}"></td>
+                              <td>
+                                  <!--最好是两个弹框-->
+                                  <button type="button" class="btn btn-default"><a th:data-id="${question.id}" th:data-page="${pagination.page}" th:data-search="${search}" onclick="showdelect(this)">删除</a></button>
+                                  <button type="button" class="btn btn-default"><a th:href="@{'/question/'+ ${question.id}}">详情</a></button>
+                              </td>
+                          </tr>
+                       </span>
+                    </tbody>
+                </table>
+                <nav aria-label="Page navigation" style="">
+                    <ul class="pagination">
+                        <li th:if="${pagination.showFirstPage}">
+                            <a th:href="@{'/admin/'+${manager}(page=1,search=${search},tag=${tag})}" aria-label="Previous">
+                                <span aria-hidden="true">&lt;&lt;</span>
+                            </a>
+                        </li>
+                        <li th:if="${pagination.showPrevious}">
+                            <a th:href="@{'/admin/'+${manager}(page=${pagination.page - 1},search=${search},tag=${tag})}" aria-label="Previous">
+                                <span aria-hidden="true">&lt;</span>
+                            </a>
+                        </li>
+
+                        <li th:each="page:${pagination.pages}" th:class="${pagination.page==page}? 'active' : ''">
+                            <a th:href="@{'/admin/'+${manager}(page=${page},search=${search},tag=${tag})}" th:text="${page}"></a>
+                        </li>
+                        <li th:if="${pagination.showNext}">
+                            <a th:href="@{'/admin/'+${manager}(page=${pagination.page + 1},search=${search},tag=${tag})}" aria-label="Previous">
+                                <span aria-hidden="true">&gt;</span>
+                            </a>
+                        </li>
+                        <li th:if="${pagination.showEndPage}">
+                            <a th:href="@{'/admin/'+${manager}(page=${pagination.totalPage},search=${search},tag=${tag})}" aria-label="Previous">
+                                <span aria-hidden="true">&gt;&gt;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div th:if="${manager=='lables'}">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        操作
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="/lable">删除标签</a></li>
+                        <li><a href="/lable">添加标签</a></li>
+                    </ul>
+                </div>
+                <div id="chartmain2" style="width:1000px; height: 600px;"></div>
+            </div>
+            <div th:if="${manager=='intor'}">
+                3
+            </div>
+            <div th:if="${manager=='project'}">
+                <table class="table table-hover">
+                    <thead>
+                       <tr>
+                        <th style="width: 70px">#</th>
+                        <th style="width: 130px">姓名</th>
+                        <th style="width: 140px">创建时间</th>
+                        <th style="width: 140px">更新时间</th>
+                        <th>链接</th>
+                        <th>操作</th>
+                       </tr>
+                    </thead>
+                    <tbody>
+                     <span th:each="project : ${projects}">
+                          <tr>
+                              <th scope="row" th:text="${project.id}"></th>
+                              <th scope="row" th:text="${project.projectName}"></th>
+                              <td th:text="${#dates.format(project.gmtCreate,'yyyy-MM-dd HH:mm')}"></td>
+                              <td th:text="${#dates.format(project.gmtModified,'yyyy-MM-dd HH:mm')}"></td>
+                              <td th:text="${project.url}"></td>
+                              <td>
+                                  <button type="button" class="btn btn-default"><a th:data-id="${project.id}"  onclick="showdelect2(this)">删除</a></button>
+                                  <button type="button" class="btn btn-default" th:if="${project.open==0}"><a th:href="@{'/openProject/'+${project.id}}">打开</a></button>
+                                  <button type="button" class="btn btn-default" th:if="${project.open==1}"><a th:href="@{'/offProject/'+${project.id}}">关闭</a></button>
+                              </td>
+                          </tr>
+                       </span>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${manager=='root'}">
+                <div>
+                    <div style="">
+                        <ul class="nav nav-tabs">
+                            <li role="presentation" id="guanli" class="active" style="float:left" onclick="showguan()"><a href="#">管理员</a></li>
+                            <li role="presentation" id="guanli1" style="float:left" onclick="showguan1()"><a href="#">普通管理员</a></li>
+                        </ul>
+
+                        <!--<div style="float: left;cursor: pointer" onclick="showguan()">管理员</div>
+                        <div style="float: left;cursor: pointer" onclick="showguan1()">普通管理员</div>-->
+                    </div>
+                    <div id="guan" style="margin: 0px 1px;background: rgb(255, 255, 255);height: 550px;">
+                        <div th:each="guanroot: ${guanroots}" th:if="${guanroot.isdelete==0}" style="height: 250px;margin: 10px;padding: 20px;text-align:center;border: 1px solid;float: left;min-width: 140px;max-width: 160px;">
+                              <span th:if="${guanroot.rolename=='admin'}">
+                                <span th:text="${guanroot.functionname}"></span>
+                                <div th:text="${guanroot.intro}" style="margin-top:20px"></div>
+                              </span>
+                       </div>
+                        <div style="width: 200px;margin: 0 auto;text-align: center">
+                            <div style=" position: absolute;top: 10px;left: 300px;cursor: pointer" onclick="showguanroot()">管理员权限管理</div>
+                        </div>
+                    </div>
+                    <div style="display:none;margin: 0px 1px; background: rgb(255, 255, 255);height: 550px;" id="guan1">
+                         <div th:each="puguanroot: ${puguanroots}"  th:if="${puguanroot.isdelete==0}"style=" height: 250px;margin: 10px;padding: 20px;text-align:center;border: 1px solid;float: left;min-width: 140px;max-width: 160px;">
+                               <span th:if="${puguanroot.rolename=='genadmin'}">
+                                <span th:text="${puguanroot.functionname}"></span>
+                                <div th:text="${puguanroot.intro}"  style="margin-top:20px"></div>
+                               </span>
+                        </div>
+                        <div style="width: 200px;margin: 0 auto;text-align: center">
+                            <div style="  position: absolute;top: 10px;left: 300px;cursor: pointer" onclick="showpuguanroot()">普通管理员权限管理</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div th:if="${manager=='chart'}">
+                <div id="chartmain" style="width:1000px; height: 400px;"></div>
+                <div id="chartmain1" style="width:1000px; height: 400px;"></div>
+                <div id="chartmain3" style="width:1000px; height: 400px;"></div>
+            </div>
+            <div th:if="${manager=='users'}">
+                <form class="navbar-form navbar-left" action="/admin/users/" method="get">
+                    <div class="form-group">
+                        <input type="text" style="width: 500px;" class="form-control" placeholder="输入关键字" name="search">
+                    </div>
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </form >
+                <button type="button" class="btn btn-default"  style="margin-top: 8px;float: left;"><a href="/excelchu/users">导出用户表</a></button>
+                <form action="/excelru/users" method="post" enctype="multipart/form-data">
+                    <input type="file" name="userexcel" style="margin-top:10px;">
+                    <button type="submit" class="btn btn-default"  style="margin-top: 8px;float: left;">导入用户表</button>
+                </form>
+                <form th:action="@{'send'(page=${pagination.page},search=${search})}" method="post">
+                    <div class="btn-group">
+                    <button id="send" style="margin: 8px 15px;" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        发送消息 <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" style=" margin-left: 15px;background-color: #e6e6e6;border-color: #adadad; min-width: 93px;padding: 5px;">
+                        <li><input name="method" type="radio" checked="checked" value="zhannei"/>站内消息</li>
+                        <li> <input name="method" type="radio" value="qq"/>邮件消息</li><!--邮件方式兼容-->
+                    </ul>
+                </div>
+                    <div style="display:none;position: fixed;width: 100%;height: 0;left: 0;" id="notice">
+                       <div style="width: 500px; margin: 0 auto;background-color: #efefef;height: 227px;">
+                         <input type="text" style="width:500px;height:200px;" placeholder="内容......" name="content">
+                          <div style="">
+                            <p id="close" style="border: 1px solid;background-color: buttonface; padding: 1px 6px;text-shadow: 0 1px 0 #fff;float: left;margin: 0;cursor: pointer;">取消</p>
+                            <button type="submit" style="float: right;">发表</button>
+                          </div>
+                         </div>
+                    </div>
+                    <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="checkAll" onclick="checkAll()"/>全选/全不选
+                        </th>
+                        <th style="width: 70px">#</th>
+                        <th style="width: 130px">姓名</th>
+                        <th style="width: 140px">创建时间</th>
+                        <th style="width: 140px">更新时间</th>
+                        <th>头像</th>
+                        <th>电话</th>
+                        <th>角色</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <span th:each="user : ${pagination.data}">
+                          <tr>
+                              <th><input type="checkbox" name="tongzhi" th:value="${user.id}"></th>
+                              <th scope="row" th:text="${user.id}"></th>
+                              <th scope="row" th:text="${user.name}"></th>
+                              <td th:text="${#dates.format(user.gmtCreate,'yyyy-MM-dd HH:mm')}"></td>
+                              <td th:text="${#dates.format(user.gmtModified,'yyyy-MM-dd HH:mm')}"></td>
+                              <td>
+                                  <img th:src="${user.avatarUrl}" style="width: 50px;height: 50px;" >
+                              </td>
+                              <td th:text="${user.phone}"></td>
+                               <td th:text="${user.role}"></td>
+                              <td>
+                                  <!--最好是两个弹框-->
+                                  <button type="button" class="btn btn-default"><a th:data-id="${user.id}" th:data-page="${pagination.page}" th:data-search="${search}"  onclick="showdelect1(this)">删除</a></button>
+                                  <button type="button" class="btn btn-default"> <a th:href="@{'/otheruserhome/tie/'+${user.id}}">详情</a></button>
+
+                                  <button type="button" class="btn btn-default" th:if="${user.role.equals('user')}"><a th:href="@{'/role/user/'+${user.id}(page=${pagination.page},search=${search})}">升级为普通管理</a></button>
+                                  <button type="button" class="btn btn-default" th:if="${user.role.equals('genadmin')}"><a th:href="@{'/role/genadmin/'+${user.id}(page=${pagination.page},search=${search})}">降级为网站用户</a></button>
+                              </td>
+                          </tr>
+                   </span>
+                    </tbody>
+                </table>
+                </form>
+
+                <nav aria-label="Page navigation" style="">
+                    <ul class="pagination">
+                        <li th:if="${pagination.showFirstPage}">
+                            <a th:href="@{'/admin/'+${manager}(page=1,search=${search})}" aria-label="Previous">
+                                <span aria-hidden="true">&lt;&lt;</span>
+                            </a>
+                        </li>
+                        <li th:if="${pagination.showPrevious}">
+                            <a th:href="@{'/admin/'+${manager}(page=${pagination.page - 1},search=${search})}" aria-label="Previous">
+                                <span aria-hidden="true">&lt;</span>
+                            </a>
+                        </li>
+
+                        <li th:each="page:${pagination.pages}" th:class="${pagination.page==page}? 'active' : ''">
+                            <a th:href="@{'/admin/'+${manager}(page=${page},search=${search})}" th:text="${page}"></a>
+                        </li>
+                        <li th:if="${pagination.showNext}">
+                            <a th:href="@{'/admin/'+${manager}(page=${pagination.page + 1},search=${search})}" aria-label="Previous">
+                                <span aria-hidden="true">&gt;</span>
+                            </a>
+                        </li>
+                        <li th:if="${pagination.showEndPage}">
+                            <a th:href="@{'/admin/'+${manager}(page=${pagination.totalPage},search=${search}}" aria-label="Previous">
+                                <span aria-hidden="true">&gt;&gt;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div th:if="${manager=='noroot'}">
+                <div></div>
+                <h3 style="text-align: center;">你没有权限或者没有该功能管理</h3>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="z-index:11;position: fixed;top:20px;width: 100%;display: none" id="errorinfor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span>是否删除该文章？</span>
+        <a onclick="delectquestion()" style="cursor: pointer" class="glyphicon glyphicon-ok"> 是</a>
+        <span onclick="closeerror()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="z-index:11;position: fixed;top:20px;width: 100%;display: none" id="errorinfor1">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span>是否删除该用户？</span>
+        <a onclick="delectuser()" style="cursor: pointer" class="glyphicon glyphicon-ok"> 是</a>
+        <span onclick="closeerror()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="z-index:11;position: fixed;top:20px;width: 100%;display: none" id="errorinfor2">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span>是否删除该程序？</span>
+        <a onclick="delectporject()" style="cursor: pointer" class="glyphicon glyphicon-ok"> 是</a>
+        <span onclick="closeerror()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="z-index:11;position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div id="guanroot" style="z-index:11;width:100%;height:350px;position:fixed;top:100px;display:none;border-radius: 5px;padding:40px;">
+    <div style="     background: rgb(216, 216, 216);width:400px;margin:0 auto;height:100%;position:relative;">
+        <ul class="nav nav-tabs">
+            <li role="presentation" class="active"  onclick="showguanaddroot()" id="guanliadd"><a href="#">添加权限</a></li>
+            <li role="presentation"  id="guanlidel" onclick="showguandelroot()"><a href="#">删除权限</a></li>
+        </ul>
+        <div id="guanaddroot" style=" background: #fff;padding: 20px;text-align: center">
+            <select class="form-control"  style="margin: 0 auto;width: 120px;" id="addAdmin">
+                <option th:each="guanroot:${guanroots}"  th:if="${guanroot.isdelete==1}" th:value="${guanroot.functionname}" th:text="${guanroot.functionname}"></option>
+            </select>
+            <button onclick="subaddadmin()" style="margin-top: 120px;" class="btn btn-default">确定</button>
+        </div>
+        <div id="guandelroot" style="display: none;background: #fff;padding: 20px;text-align: center">
+            <select class="form-control"  style="margin: 0 auto;width: 120px" id="delAdmin">
+                <option th:each="guanroot: ${guanroots}" th:if="${guanroot.isdelete==0}" th:value="${guanroot.functionname}" th:text="${guanroot.functionname}"></option>
+            </select>
+            <button onclick="subdeladmin()" style="margin-top: 120px;" class="btn btn-default">确定</button>
+        </div>
+
+        <div onclick="closeaddroot()" style="position:absolute;right:0px;top:0px;cursor: pointer">
+            <span class="glyphicon glyphicon-remove" style="margin: 3px;"></span>
+        </div>
+    </div>
+</div>
+<div id="puguanroot" style="z-index:11;width:100%;height:350px;position:fixed;top:100px;display:none;border-radius: 5px;padding:40px;">
+    <div style="background: rgb(216, 216, 216);width:400px;margin:0 auto;height:100%;position:relative;">
+        <ul class="nav nav-tabs">
+            <li role="presentation" class="active" onclick="showpuguanaddroot()" id="puguanliadd"><a href="#">添加权限</a></li>
+            <li role="presentation" onclick="showpuguandelroot()" id="puguanlidel"><a href="#">删除权限</a></li>
+        </ul>
+        <div id="puguanaddroot" style="background: #fff;padding: 20px;text-align: center">
+            <select class="form-control"  style="margin: 0 auto;width: 120px;" id="addPuAdmin">
+                <option th:each="puguanroot:${puguanroots}"  th:if="${puguanroot.isdelete==1}" th:value="${puguanroot.functionname}" th:text="${puguanroot.functionname}"></option>
+            </select>
+            <button onclick="subaddpuadmin()" style="margin-top: 120px;" class="btn btn-default">确定</button>
+        </div>
+        <div id="puguandelroot" style="display: none;background: #fff;padding: 20px;text-align: center">
+            <select class="form-control"  style="margin:0 auto;width: 120px" id="delPuAdmin">
+                <option th:each="puguanroot: ${puguanroots}"  th:if="${puguanroot.isdelete==0}"  th:value="${puguanroot.functionname}" th:text="${puguanroot.functionname}"></option>
+            </select>
+            <button onclick="subdelpuadmin()" style="margin-top: 120px;" class="btn btn-default">确定</button>
+        </div>
+
+        <div onclick="closedelroot()" style="position:absolute;right:0px;top:0px;cursor: pointer">
+            <span class="glyphicon glyphicon-remove" style="margin: 3px;"></span>
+        </div>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        var myChart = echarts.init(document.getElementById('chartmain'));
+        var base = +new Date(2020, 3, 10);
+        var oneDay = 24 * 3600 * 1000;
+        var date = [];
+        var data = [];
+        myChart.showLoading();
+        $.ajax({
+            type : "post",
+            async : true,            //异步请求（同步请求将会锁住浏览器，用户其他操作必须等待请求完成才可以执行）
+            url : "/QuestionTagPublish2",    //请求发送到dataActiont处
+            data : {},
+            dataType : "json",        //返回数据形式为json
+            success : function(result) {
+                //请求成功时执行该函数内容，result即为服务器返回的json对象
+                if (result) {
+                    for (var i = 1; i < 1000; i++) {
+                        var now = new Date(base += oneDay);
+                        date.push([now.getFullYear(), now.getMonth(), now.getDate()].join('/'));  //x轴时间
+                        if(now.getMonth()>9&&now.getDate()>9){
+                            var temp=now.getFullYear().toString()+"-"+(now.getMonth())+"-"+now.getDate().toString()
+                        }else if(now.getMonth()>9&&now.getDate()<10){
+                            var temp=now.getFullYear().toString()+"-"+(now.getMonth())+"-0"+now.getDate().toString()
+                        }else if(now.getMonth()<10&&now.getDate()>9){
+                            var temp=now.getFullYear().toString()+"-0"+(now.getMonth())+"-"+now.getDate().toString()
+                        }else{
+                            var temp=now.getFullYear().toString()+"-0"+(now.getMonth())+"-0"+now.getDate().toString()
+                        }
+                        var te=0;
+                        for (var j = 0; j < result.length; j++) {   //y轴数据
+                            if(temp==result[j].date){ //如果日期对应，给数据
+                                te=result[j].value;
+                                break;
+                            }
+                        }
+                        data.push(te)
+                    }
+                    myChart.hideLoading();    //隐藏加载动画
+                    myChart.setOption(
+                        {
+                            tooltip: {
+                                trigger: 'axis',
+                                position: function (pt) {
+                                    return [pt[0], '10%'];
+                                }
+                            },
+                            title: {
+                                left: 'center',
+                                text: '网站每天发布帖子数量图',
+                            },
+                            toolbox: {
+                                feature: {
+                                    dataZoom: {
+                                        yAxisIndex: 'none'
+                                    },
+                                    restore: {},
+                                    saveAsImage: {}
+                                }
+                            },
+                            xAxis: {
+                                type: 'category',
+                                boundaryGap: false,
+                                data: date
+                            },
+                            yAxis: {
+                                type: 'value',
+                                boundaryGap: [0, '100%']
+                            },
+                            dataZoom: [{
+                                type: 'inside',
+                                start: 0,
+                                end: 10
+                            }, {
+                                start: 0,
+                                end: 10,
+                                handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                                handleSize: '80%',
+                                handleStyle: {
+                                    color: '#fff',
+                                    shadowBlur: 3,
+                                    shadowColor: 'rgba(0, 0, 0, 0.6)',
+                                    shadowOffsetX: 2,
+                                    shadowOffsetY: 2
+                                }
+                            }],
+                            series: [
+                                {
+                                    name: '模拟数据',
+                                    type: 'line',
+                                    smooth: true,
+                                    symbol: 'none',
+                                    sampling: 'average',
+                                    itemStyle: {
+                                        color: 'rgb(255, 70, 131)'
+                                    },
+                                    areaStyle: {
+                                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                            offset: 0,
+                                            color: 'rgb(255, 158, 68)'
+                                        }, {
+                                            offset: 1,
+                                            color: 'rgb(255, 70, 131)'
+                                        }])
+                                    },
+                                    data: data
+                                }
+                            ]
+                        }
+                    );
+                }
+            },
+            error : function(errorMsg) {
+                //请求失败时执行该函数
+                alert("图表请求数据失败!");
+                myChart.hideLoading();
+            }
+        });//end ajax
+
+    });//刷新方法结束
+</script>
+<script>
+    var myChart = echarts.init(document.getElementById('chartmain1'));
+    // 指定图表的配置项和数据
+    var names=[];
+    var values=[];
+    //数据加载完之前先显示一段简单的loading动画
+    myChart.showLoading();
+    $.ajax({
+        type : "post",
+        async : true,            //异步请求（同步请求将会锁住浏览器，用户其他操作必须等待请求完成才可以执行）
+        url : "/QuestionTagPublish1",    //请求发送到dataActiont处
+        data : {},
+        dataType : "json",        //返回数据形式为json
+        success : function(result) {
+            //请求成功时执行该函数内容，result即为服务器返回的json对象
+            if (result) {
+                for(var i=0;i<result.length;i++){
+                    names.push(result[i].name);
+                    values.push(result[i].count);
+                }
+                myChart.hideLoading();    //隐藏加载动画
+                myChart.setOption(
+                    {
+                        title: {
+                            text: '发布帖子标签数量图',
+                            x: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'item',
+                            // formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient: 'vertical',
+                            left: 'left',
+                            data: names
+                        },
+                        xAxis: {
+                            data:  names,
+                            /* nameTextStyle:{
+                                 fontSize:50
+                             }*/
+                            axisLabel : {  //让x轴不会隔一个显示一个
+                                show:true,
+                                interval: 0
+                            }
+                        },
+                        yAxis: {},
+                        series: [{
+                            name: '数量',
+                            type: 'bar',
+                            data: values,
+                            barGap: '-100%',
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }]
+                        /*series: [
+                            {
+                                name: '物料来源',
+                                type: 'bar',
+                                radius: '55%',
+                                center: ['50%', '60%'],
+                                data: result,
+                                itemStyle: {
+                                    emphasis: {
+                                        shadowBlur: 10,
+                                        shadowOffsetX: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                    }
+                                }
+                            }
+                        ]*/
+                    }
+                );
+            }
+        },
+        error : function(errorMsg) {
+            //请求失败时执行该函数
+            alert("图表请求数据失败!");
+            myChart.hideLoading();
+        }
+    });//end ajax
+</script>
+<script>
+    document.getElementById('checkAll').onclick=function(){
+        var checkAllEle=document.getElementById('checkAll');
+        var checkOnes=document.getElementsByName('tongzhi');
+
+        if(checkAllEle.checked==true){
+            for(var i=0;i<checkOnes.length;i++){
+                checkOnes[i].checked=true;
+            }
+        }else{
+            for(var i=0;i<checkOnes.length;i++){
+                checkOnes[i].checked=false;
+            }
+        }
+    }
+    var notice=document.getElementById('notice'),
+        send=document.getElementById('send'),
+        close=document.getElementById('close');
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    /////'
+    function showguan() {
+        $("#guan").show();
+        $("#guanli1").attr("class","")
+        $("#guanli").attr("class","active")
+        $("#guan1").hide();
+
+    }
+    function showguan1() {
+        $("#guanli").attr("class","")
+        $("#guanli1").attr("class","active")
+        $("#guan").hide();
+        $("#guan1").show();
+    }
+    function showguanroot() {
+        $('#zhezhao').show()
+        $('#guanroot').show();
+        $('#puguanroot').hide();
+    }
+    function showpuguanroot() {
+        $('#zhezhao').show()
+        $('#guanroot').hide();
+        $('#puguanroot').show();
+    }
+    function closeaddroot() {
+        $('#guanroot').hide();
+        $('#zhezhao').hide()
+    }
+    function closedelroot() {
+        $('#puguanroot').hide();
+        $('#zhezhao').hide()
+    }
+    ////
+    function showguanaddroot() {
+        $("#guanlidel").attr("class","")
+        $("#guanliadd").attr("class","active")
+        $('#guanaddroot').show();
+        $('#guandelroot').hide();
+    } function showguandelroot() {
+        $("#guanlidel").attr("class","active")
+        $("#guanliadd").attr("class","")
+        $('#guanaddroot').hide();
+        $('#guandelroot').show();
+    } function showpuguanaddroot() {
+        $("#puguanliadd").attr("class","active")
+        $("#puguanlidel").attr("class","")
+        $('#puguanaddroot').show();
+        $('#puguandelroot').hide();
+    } function showpuguandelroot() {
+        $("#puguanlidel").attr("class","active")
+        $("#puguanliadd").attr("class","")
+        $('#puguanaddroot').hide();
+        $('#puguandelroot').show();
+    }
+///////////////
+       function subaddadmin(){
+           var addAdmin=document.getElementById("addAdmin")
+           window.location.href="/addroot/admin?functionName="+addAdmin.options[addAdmin.selectedIndex].value
+       }
+    function subdeladmin(){
+        var delAdmin=document.getElementById("delAdmin")
+        window.location.href="/deleteroot/admin?functionName="+delAdmin.options[delAdmin.selectedIndex].value
+
+    }
+    function subaddpuadmin(){
+        var addPuAdmin=document.getElementById("addPuAdmin");
+        window.location.href="/addroot/genadmin?functionName="+addPuAdmin.options[addPuAdmin.selectedIndex].value
+
+    }
+    function subdelpuadmin(){
+        var delPuAdmin=document.getElementById("delPuAdmin");
+        window.location.href="/deleteroot/genadmin?functionName="+delPuAdmin.options[delPuAdmin.selectedIndex].value
+
+    }
+       send.onclick = function() {
+            notice.style.display = "block";
+       };
+
+       close.onclick = function() {
+           notice.style.display = "none";
+      };
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        var myChart = echarts.init(document.getElementById('chartmain2'));
+        var data = {
+            "name": "网站标签",
+            "children": [
+                {
+                    "name": "",
+                    "children": [
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": "",
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },
+                        {
+                            "name": "",
+                            "value": ""
+                        },//29
+                    ]
+                },
+                {
+                    "name": "",
+                    "children": [
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                    ]
+                },
+                {
+                    "name": "",
+                    "children": [
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                    ]
+                },
+                {
+                    "name": "",
+                    "children": [
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                    ]
+                },
+                {
+                    "name": "",
+                    "children": [
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                        {"name": "", "value": ""},
+                    ]
+                },{
+                    "name": "",
+                    "children": [
+                        {"name": "", "value": ""},
+                    ]
+                }
+            ]
+        };
+        myChart.showLoading();
+        $.ajax({
+            type : "post",
+            async : true,            //异步请求（同步请求将会锁住浏览器，用户其他操作必须等待请求完成才可以执行）
+            url : "/QuestionTagPublish3",    //请求发送到dataActiont处
+            data : {},
+            dataType : "json",        //返回数据形式为json
+            success : function(result) {
+                //请求成功时执行该函数内容，result即为服务器返回的json对象
+                if (result) {
+                    for(var i=0;i<result.length;i++){
+                        data.children[i].name=result[i].categoryName;
+                        for(var j=0;j<result[i].tags.length;j++){
+                            data.children[i].children[j].name=result[i].tags[j].name;
+                            data.children[i].children[j].value=result[i].tags[j].value;
+                        }
+                    }
+                    myChart.hideLoading();    //隐藏加载动画
+                    myChart.setOption(
+                        {
+                            tooltip: {
+                                trigger: 'item',
+                                triggerOn: 'mousemove'
+                            },
+                            legend: {
+                                top: '2%',  //左上角”标签管理“矩形的位置
+                                left: '3%',
+                                orient: 'vertical',
+                                data: [{
+                                    name: '网站标签',
+                                    icon: 'rectangle'
+                                }],
+                                borderColor: '#c23531'
+                            },
+                            series:[
+                                {
+                                    type: 'tree',
+                                    name: "网站标签",
+                                    data: [data],
+                                    top: '0%',  //树图的位置
+                                    left: '8%',
+                                    bottom: '0%',
+                                    right: '8%',
+                                    symbolSize: 7,  //圆圈点大小
+                                    label: {
+                                        position: 'left',
+                                        verticalAlign: 'middle',
+                                        align: 'right'
+                                    },
+                                    leaves: {
+                                        label: {
+                                            position: 'right',
+                                            verticalAlign: 'middle',
+                                            align: 'left'
+                                        }
+                                    },
+                                    expandAndCollapse: true,
+                                    animationDuration: 550,
+                                    animationDurationUpdate: 750
+                                }
+                            ]
+                        }
+                    );
+                }
+            },
+            error : function(errorMsg) {
+                //请求失败时执行该函数
+                alert("图表请求数据失败!");
+                myChart.hideLoading();
+            }
+        });//end ajax
+
+    });//刷新方法结束
+</script>
+<script type="text/javascript">
+    var id;
+    var page;
+    var search
+    function closeerror(){
+        $('#errorinfor').hide();
+        $('#errorinfor1').hide();
+        $('#errorinfor2').hide();
+    }
+    ////th:href="@{'/delect/posts/'+${question.id}(page=${pagination.page},search=${search})}"
+    ///th:href="@{'/delect/users/'+${user.id}(page=${pagination.page},search=${search})}"
+    function showdelect(e) {
+        id = e.getAttribute("data-id");
+        page = e.getAttribute("data-page");
+        search = e.getAttribute("data-search");
+        $('#errorinfor').show();
+    }
+    function delectquestion(){
+        window.location="/delect/posts/"+id+"?page="+page+"&search="+search
+    }
+    ///////////////
+    function showdelect1(e){
+        id = e.getAttribute("data-id");
+        page = e.getAttribute("data-page");
+        search = e.getAttribute("data-search");
+        $('#errorinfor1').show();
+    }
+    function delectuser(){
+        window.location="/delect/users/"+id+"?page="+page+"&search="+search
+    }
+///////////
+    function showdelect2(e){
+        id = e.getAttribute("data-id");
+        $('#errorinfor2').show();
+    }
+    function delectproject(){
+        window.location="/delect/project/"+id
+    }
+</script>
+</body>
+</html>

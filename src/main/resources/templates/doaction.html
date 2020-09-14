@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js" type="application/javascript"></script>
+    <script src="/js/bootstrap.js" type="application/javascript"></script>
+    <script src="/js/community.js" type="application/javascript"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=in4DvX3Bj7iUq7nNpu8PYCy1xExOXFLQ"></script>
+    <title>位置</title>
+</head>
+<style type="text/css">
+
+</style>
+<script type="application/javascript">
+    var inforMsg = $("#informsg")
+    function closeerror1() {
+        $('#infor').hide();
+    }
+    function method1(callback){
+        setTimeout(function () {
+            // f1的任务代码
+            var geolocation = new BMap.Geolocation();
+            geolocation.getCurrentPosition(function(r){
+                if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                    // alert("坐标："+r.point.lng+":"+ r.point.lat);
+                    lng=r.point.lng;
+                    lat=r.point.lat;
+                    $("#loading").hide()
+                    window.location.href="/shiyan7?lng="+lng+"&lat="+lat;
+                }
+                else {
+                    // alert('定位失败'+this.getStatus());
+                    $('#infor').show();
+                    $("#loading").hide()
+                    $(inforMsg).html("定位失败"+this.getStatus())
+                }
+            },{enableHighAccuracy: true})
+            callback();
+        }, 0);
+    }
+    function callback(){
+        $("#loading").show()
+    }
+    //页面加载完毕之后执行的两种方法
+  /*  $(function () {
+        document.getElementById("zidong1").style.display="block"
+    });*/
+    $(document).ready(function () {
+        document.getElementById("zidong1").style.display="block"
+    })
+
+</script>
+<body>
+<div th:insert="~{navigation :: nav}"></div>
+<input th:value="${doautoactions.size()}" style="display: none" id="size">
+<div class="container-fluid main" style="min-height: 600px;border-radius: 4px;margin: 0 30px;">
+    <h3 style="text-align: center;">自动化程序</h3>
+    <hr>
+    <form method="post" id="tijiao" style="text-align: center;">
+    <div id="cheng" style=" height: 350px;">
+        <div th:id="'zidong'+${index.count}" style=" width: 60%;margin: 0 auto;min-width: 300px;display: none" th:if="${doautoactions.size()}!=0" th:each="doautoaction,index:${doautoactions}">
+        <div th:text="'第'+${index.count}+'步'"></div>
+        <div>
+            <div style="width: 350px; height: 50px; margin: 0 auto;">
+                <div style="float: left;margin: 10px;cursor: pointer" onclick="showdian(this)" th:data-target="${index.count}">类型1:鼠标点击</div>
+                <div style="float: left;margin: 10px;cursor: pointer" onclick="showbiao(this)" th:data-target="${index.count}">类型2:填写表单</div>
+                <div style="float: left;margin: 10px;cursor: pointer" onclick="showtuo(this)" th:data-target="${index.count}">类型3:鼠标拖动</div>
+            </div>
+            <hr>
+            <div style="height: 150px;">
+                <div th:id="'dian'+${index.count}">
+                    <div onclick="xiqu(this)" th:data-target="${index.count}" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>
+                    <input type="text" th:id="'weizhi'+${index.count}" th:name="'weizhi'+${index.count}" th:value="${doautoaction.location}">
+                    <div style=" width: 130px;height: 50px;margin: 0 auto;">
+                        <span  th:if="${!doautoaction.lor.equals('right')}">
+                             <div style="float: left;margin: 10px;">左键<input th:name="'jian'+${index.count}" type="radio" checked value="left"/></div>
+                             <div style="float: left;margin: 10px;">右键<input th:name="'jian'+${index.count}" type="radio" value="right"/></div>
+                        </span>
+                        <span th:if="${doautoaction.lor.equals('right')}">
+                             <div style="float: left;margin: 10px;">左键<input th:name="'jian'+${index.count}" type="radio" value="left"/></div>
+                            <div style="float: left;margin: 10px;">右键<input th:name="'jian'+${index.count}" type="radio" checked value="right"/></div>
+                         </span>
+                    </div>
+                    <div>点击次数:<input style="width: 40px;" type="text" th:id="'clickcount'+${index.count}" th:name="'clickcount'+${index.count}" th:value="${doautoaction.clickCount}"></div>
+                    <div>间隔时间:<input style="width: 40px;" type="text" th:id="'interval'+${index.count}" th:name="'interval'+${index.count}" th:value="${doautoaction.jian}"></div>
+                </div>
+                <div  th:id="'biao'+${index.count}" style="display: none">
+                    <span th:if="${doautoaction.content}!=''">
+                       <div>内容:
+                            <input type="text" th:id="'content'+${index.count}" th:name="'content'+${index.count}" th:value="${doautoaction.content}">
+                        </div>
+                    </span>
+                </div>
+                <div  th:id="'tuo'+${index.count}" style="display: none">
+                    <div onclick="xiqu(this)" th:data-target="${index.count}" data-tuo="tuo" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>
+                    <input type="text" th:id="'tuoweizhi'+${index.count}" th:name="'tuoweizhi'+${index.count}">
+                    <div style=" width: 130px;height: 50px;margin: 0 auto;">
+                       <span th:if="${!doautoaction.lor.equals('right')}">
+                             <div style="float: left;margin: 10px;">左键<input th:name="'tuojian'+${index.count}" type="radio" checked value="left"/></div>
+                             <div style="float: left;margin: 10px;">右键<input th:name="'tuojian'+${index.count}" type="radio" value="right"/></div>
+                        </span>
+                        <span th:if="${doautoaction.lor.equals('right')}">
+                             <div style="float: left;margin: 10px;">左键<input th:name="'tuojian'+${index.count}" type="radio" value="left"/></div>
+                            <div style="float: left;margin: 10px;">右键<input th:name="'tuojian'+${index.count}" type="radio" checked value="right"/></div>
+                         </span>
+                    </div>
+                    <div>执行时间:<input style="width: 40px;" type="text" th:id="'tuotime'+${index.count}" th:name="'tuotime'+${index.count}" th:value="1"></div>
+                </div>
+            </div>
+        </div>
+        <div style="    margin: 10px;">
+            <a style="    margin: 10px;cursor: pointer" onclick="shang(this)" th:data-target="${index.count}">上一步</a>
+            <a style="    margin: 10px;cursor: pointer" onclick="xia(this)" th:data-target="${index.count}">下一步</a>
+            <a style="    margin: 10px;cursor: pointer">重置</a>
+        </div>
+      </div>
+        <div id="zidong1" style=" width: 60%;margin: 0 auto;min-width: 300px;" th:if="${doautoactions.size()}==0">
+            <div>第1步</div>
+            <div>
+                <div style="width: 350px; height: 50px; margin: 0 auto;">
+                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showdian(this)" data-target="1">类型1:鼠标点击</div>
+                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showbiao(this)" data-target="1">类型2:填写表单</div>
+                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showtuo(this)" data-target="1">类型3:鼠标拖拽</div>
+                </div>
+                <hr>
+                <div style="height: 150px;">
+                    <div id="dian1">
+                        <div onclick="xiqu(this)" data-target="1" data-tuo="dian" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>
+                        <input type="text" id="weizhi1" name="weizhi1">
+                        <div style=" width: 130px;height: 50px;margin: 0 auto;">
+                            <div style="float: left;margin: 10px;">左键<input name="jian1" type="radio" checked value="left"/></div>
+                            <div style="float: left;margin: 10px;">右键<input name="jian1" type="radio" value="right"/></div>
+                        </div>
+                        <div>点击次数:<input style="width: 40px;" type="text" id="clickcount1" name="clickcount1" th:value="1"></div>
+                        <div>间隔时间:<input style="width: 40px;" type="text" id="interval1" name="interval1" th:value="1"></div>
+                    </div>
+                    <div  id="biao1" style="display: none">
+                        <div>内容:
+                            <input type="text" id="content1" name="content1">
+                        </div>
+                    </div>
+                    <div  id="tuo1" style="display: none">
+                        <div onclick="xiqu(this)" data-target="1" data-tuo="tuo" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>
+                        <input type="text" id="tuoweizhi1" name="tuoweizhi1">
+                        <div style=" width: 130px;height: 50px;margin: 0 auto;">
+                            <div style="float: left;margin: 10px;">左键<input name="tuojian1" type="radio" checked value="left"/></div>
+                            <div style="float: left;margin: 10px;">右键<input name="tuojian1" type="radio" value="right"/></div>
+                        </div>
+                        <div>执行时间:<input style="width: 40px;" type="text" id="tuotime1" name="tuotime1" th:value="1"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="    margin: 10px;">
+                <a style="    margin: 10px;cursor: pointer" onclick="shang(this)" data-target="1">上一步</a>
+                <a style="    margin: 10px;cursor: pointer" onclick="xia(this)" data-target="1">下一步</a>
+                <a style="    margin: 10px;cursor: pointer" onclick="chong(this)"  data-target="1">重置</a>
+            </div>
+        </div>
+    </div>
+     <button onclick="submit1(this)" th:data-actionId="${actionId}">完成</button>
+    </form>
+</div>
+<div style="position: fixed;top:20px;width: 100%;display: none" id="errorinfor1">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span>是否删除该动作？</span>
+        <a onclick="delectaction()" style="cursor: pointer" class="glyphicon glyphicon-ok"> 是</a>
+        <span onclick="closeerror()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+     </div>
+</div>
+<div style="z-index:11;position: fixed;top:20px;width: 100%;display: none" id="infor">
+    <div class="alert alert-danger" style="position: relative;text-align: center;width: 50%;margin: 0 auto;">
+        <span id="informsg"></span>
+        <span onclick="closeerror1()" class="glyphicon glyphicon-remove" style="cursor: pointer;position: absolute;right: 0;margin: 16px 8px;width: 20px;height: 20px;"></span>
+    </div>
+</div>
+<div style="position: absolute;top: 120px;text-align: center;width: 100%;display: none" id="loading">
+    <img src="/images/loading@2x.gif" style="width: 50px;height: 50px;">
+</div>
+<div th:insert="~{footer :: foot}"></div>
+</body>
+</html>
+<script type="application/javascript">
+    var inforMsg = $("#informsg")
+    var bu=$("#size").val()-0;
+    function xia(e) {
+        if(bu==0){
+            bu=1
+        }
+        //把上一个表单值固定
+        $("#weizhi"+bu).attr("value",$("#weizhi"+bu).val())
+        $("#tuoweizhi"+bu).attr("value",$("#tuoweizhi"+bu).val())
+        var jianname="jian"+bu
+        $("input[name="+jianname+"]:checked").attr("checked",true);
+        var tuojianname="tuojian"+bu
+        $("input[name="+tuojianname+"]:checked").attr("checked",true);
+        $("#clickcount"+bu).attr("value",$("#clickcount"+bu).val())
+        $("#content"+bu).attr("value",$("#content"+bu).val())
+        $("#interval"+bu).attr("value",$("#interval"+bu).val())
+        $("#tuotime"+bu).attr("value",$("#tuotime"+bu).val())
+        //js中如何获取单选框的值
+        //1、$('input:radio:checked').val()；
+//2、$("input[type='radio']:checked").val();
+        //3、$("input[name='rd']:checked").val();
+        var id = e.getAttribute("data-target");
+        var id1=id-0+1;
+        if(id1>bu){
+           // alert("正常进入下一步")
+            //确认上一步已经填写完毕
+            if($("#weizhi"+bu).val()=="") {
+                //alert("点击位置为空")
+                if($("#content"+bu).val()==""){
+                    //ert("表单为空")
+                    if($("#tuoweizhi"+bu).val()==""){
+                        //alert("未填写完毕不能下一步！！！")
+                        $('#infor').show();
+                        $(inforMsg).html("未填写完毕不能下一步！！！")
+                    }
+                    else{
+                        //alert("拖位置不为空")
+                        bu++;
+                        var html =' <div id="zidong'+bu+'" style=" width: 60%;margin: 0 auto;min-width: 300px;">\n' +
+                            '            <div>第'+bu+'步</div>\n' +
+                            '            <div>\n' +
+                            '                <div style="width: 350px; height: 50px; margin: 0 auto;">\n' +
+                            '                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showdian(this)" data-target="'+bu+'">类型1:鼠标点击</div>\n' +
+                            '                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showbiao(this)" data-target="'+bu+'">类型2:填写表单</div>\n' +
+                            '                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showtuo(this)" data-target="'+bu+'">类型3:鼠标拖动</div>\n' +
+                            '               </div>\n' +
+                            '                <hr>\n' +
+                            '                <div style="height: 150px;">\n' +
+                            '                    <div id="dian'+bu+'">\n' +
+                            '                        <div onclick="xiqu(this)" data-target="'+bu+'" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>\n' +
+                            '                        <input type="text" id="weizhi'+bu+'" name="weizhi'+bu+'">\n' +
+                            '                        <div style=" width: 130px;height: 50px;margin: 0 auto;">\n' +
+                            '                            <div style="float: left;margin: 10px;">左键<input name="jian'+bu+'" type="radio" checked value="left"/></div>\n' +
+                            '                            <div style="float: left;margin: 10px;">右键<input name="jian'+bu+'" type="radio" value="right"/></div>\n' +
+                            '                        </div>\n' +
+                            '                        <div>点击次数:<input style="width: 40px;" type="text" id="clickcount'+bu+'" name="clickcount'+bu+'" value="1"></div>\n' +
+                            '                        <div>间隔时间:<input style="width: 40px;" type="text" id="interval'+bu+'" name="interval'+bu+'" value="1"></div>\n' +
+                            '                    </div>\n' +
+                            '                    <div  id="biao'+bu+'" style="display: none">\n' +
+                            '                        <div>静态内容:\n' +
+                            '                            <input type="text" id="content'+bu+'" name="content'+bu+'">\n' +
+                            '                        </div>\n' +
+                            '                    </div>\n' +
+                            '                   <div  id="tuo'+bu+'" style="display: none">\n' +
+                            '                       <div onclick="xiqu(this)" data-target="'+bu+'" data-tuo="tuo" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>\n' +
+                            '                        <input type="text" id="tuoweizhi'+bu+'" name="tuoweizhi'+bu+'">\n' +
+                            '                      <div style=" width: 130px;height: 50px;margin: 0 auto;">\n' +
+                            '                          <div style="float: left;margin: 10px;">左键<input name="tuojian'+bu+'" type="radio" checked value="left"/></div>\n' +
+                            '                          <div style="float: left;margin: 10px;">右键<input name="tuojian'+bu+'" type="radio" value="right"/></div>\n' +
+                            '                      </div>\n' +
+                            '                      <div>执行时间:<input style="width: 40px;" type="text" id="tuotime'+bu+'" name="tuotime'+bu+'" value="1"></div>\n' +
+                            '                    </div>\n' +
+                            '                </div>\n' +
+                            '            </div>\n' +
+                            '            <div style="    margin: 10px;">\n' +
+                            '                <a style="    margin: 10px;cursor: pointer" onclick="shang(this)" data-target="'+bu+'">上一步</a>\n' +
+                            '                <a style="    margin: 10px;cursor: pointer" onclick="xia(this)" data-target="'+bu+'">下一步</a>\n' +
+                            '                <a style="    margin: 10px;cursor: pointer">重置</a>\n' +
+                            '            </div>\n' +
+                            '        </div>'
+                        var ele=document.getElementById("cheng");
+                        ele.innerHTML=ele.innerHTML+html;
+                        document.getElementById("zidong"+id).style.display="none"
+                    }
+                }
+                else{
+                    //alert("表单不为空")
+                    bu++;
+                    var html =' <div id="zidong'+bu+'" style=" width: 60%;margin: 0 auto;min-width: 300px;">\n' +
+                        '            <div>第'+bu+'步</div>\n' +
+                        '            <div>\n' +
+                        '                <div style="width: 350px; height: 50px; margin: 0 auto;">\n' +
+                        '                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showdian(this)" data-target="'+bu+'">类型1:鼠标点击</div>\n' +
+                        '                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showbiao(this)" data-target="'+bu+'">类型2:填写表单</div>\n' +
+                        '                    <div style="float: left;margin: 10px;cursor: pointer" onclick="showtuo(this)" data-target="'+bu+'">类型3:鼠标拖动</div>\n' +
+                        '               </div>\n' +
+                        '                <hr>\n' +
+                        '                <div style="height: 150px;">\n' +
+                        '                    <div id="dian'+bu+'">\n' +
+                        '                        <div onclick="xiqu(this)" data-target="'+bu+'" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>\n' +
+                        '                        <input type="text" id="weizhi'+bu+'" name="weizhi'+bu+'">\n' +
+                        '                        <div style=" width: 130px;height: 50px;margin: 0 auto;">\n' +
+                        '                            <div style="float: left;margin: 10px;">左键<input name="jian'+bu+'" type="radio" checked value="left"/></div>\n' +
+                        '                            <div style="float: left;margin: 10px;">右键<input name="jian'+bu+'" type="radio" value="right"/></div>\n' +
+                        '                        </div>\n' +
+                        '                        <div>点击次数:<input style="width: 40px;" type="text" id="clickcount'+bu+'" name="clickcount'+bu+'" value="1"></div>\n' +
+                        '                        <div>间隔时间:<input style="width: 40px;" type="text" id="interval'+bu+'" name="interval'+bu+'" value="1"></div>\n' +
+                        '                    </div>\n' +
+                        '                    <div  id="biao'+bu+'" style="display: none">\n' +
+                        '                        <div>静态内容:\n' +
+                        '                            <input type="text" id="content'+bu+'" name="content'+bu+'">\n' +
+                        '                        </div>\n' +
+                        '                    </div>\n' +
+                        '                   <div  id="tuo'+bu+'" style="display: none">\n' +
+                       '                       <div onclick="xiqu(this)" data-target="'+bu+'" data-tuo="tuo" style="width: 60px;margin: 0 auto;cursor: pointer">位置吸取</div>\n' +
+                       '                        <input type="text" id="tuoweizhi'+bu+'" name="tuoweizhi'+bu+'">\n' +
+                       '                      <div style=" width: 130px;height: 50px;margin: 0 auto;">\n' +
+                       '                          <div style="float: left;margin: 10px;">左键<input name="tuojian'+bu+'" type="radio" checked value="left"/></div>\n' +
+                       '                          <div style="float: left;margin: 10px;">右键<input name="tuojian'+bu+'" type="radio" value="right"/></div>\n' +
+                       '                      </div>\n' +
+                       '                      <div>执行时间:<input style="width: 40px;" type="text" id="tuotime'+bu+'" name="tuotime'+bu+'" value="1"></div>\n' +
+                       '                    </div>\n' +
+                        '                </div>\n' +
+                        '            </div>\n' +
+                        '            <div style="    margin: 10px;">\n' +
+                        '                <a style="    margin: 10px;cursor: pointer" onclick="shang(this)" data-target="'+bu+'">上一步</a>\n' +
+                        '                <a style="    margin: 10px;cursor: pointer" onclick="xia(this)" data-target="'+bu+'">下一步</a>\n' +
+                        '                <a style="    margin: 10px;cursor: pointer">重置</a>\n' +
+                        '            </div>\n' +
+                        '        </div>'
+                    var ele=document.getElementById("cheng");
+                    ele.innerHTML=ele.innerHTML+html;
+                    document.getElementById("zidong"+id).style.display="none"
+                }
+            }
+            else{
+                //alert("点击位置不为空")
+                bu++;
+                var html =' <div id="zidong'+bu+'" style=" width: 60%;margin: 0 auto;min-width: 300px;">\n' +
+                    '            <div>第'+bu+'步</div>\n' +
+                    '            <div>\n' +
+                    '                <div style="width: 350px; height: 50px; margin: 0 auto;">\n' +
+                    '                    <div style="float: left;margin: 10px;" onclick="showdian(this)" data-target="'+bu+'">类型1:鼠标点击</div>\n' +
+                    '                    <div style="float: left;margin: 10px;" onclick="showbiao(this)" data-target="'+bu+'">类型2:填写表单</div>\n' +
+                    '                    <div style="float: left;margin: 10px;" onclick="showtuo(this)" data-target="'+bu+'">类型3:鼠标拖动</div>\n' +
+                    '                </div>\n' +
+                    '                <hr>\n' +
+                    '                <div style="height: 150px;">\n' +
+                    '                    <div id="dian'+bu+'">\n' +
+                    '                        <div onclick="xiqu(this)" data-target="'+bu+'" style="width: 60px;margin: 0 auto;">位置吸取</div>\n' +
+                    '                        <input type="text" id="weizhi'+bu+'" name="weizhi'+bu+'">\n' +
+                    '                        <div style=" width: 130px;height: 50px;margin: 0 auto;">\n' +
+                    '                            <div style="float: left;margin: 10px;">左键<input name="jian'+bu+'" type="radio" checked value="left"/></div>\n' +
+                    '                            <div style="float: left;margin: 10px;">右键<input name="jian'+bu+'" type="radio" value="right"/></div>\n' +
+                    '                        </div>\n' +
+                    '                        <div>点击次数:<input style="width: 40px;" type="text" id="clickcount'+bu+'" name="clickcount'+bu+'" value="1"></div>\n' +
+                    '                        <div>间隔时间:<input style="width: 40px;" type="text" id="interval'+bu+'" name="interval'+bu+'" value="1"></div>\n' +
+                    '                    </div>\n' +
+                    '                    <div  id="biao'+bu+'" style="display: none">\n' +
+                    '                        <div>静态内容:\n' +
+                    '                            <input type="text" id="content'+bu+'" name="content'+bu+'">\n' +
+                    '                        </div>\n' +
+                    '                    </div>\n' +
+                    '                   <div  id="tuo'+bu+'" style="display: none">\n' +
+                    '                       <div onclick="xiqu(this)" data-target="'+bu+'" data-tuo="tuo" style="width: 60px;margin: 0 auto;">位置吸取</div>\n' +
+                    '                        <input type="text" id="tuoweizhi'+bu+'" name="tuoweizhi'+bu+'">\n' +
+                    '                      <div style=" width: 130px;height: 50px;margin: 0 auto;">\n' +
+                    '                          <div style="float: left;margin: 10px;">左键<input name="tuojian'+bu+'" type="radio" checked value="left"/></div>\n' +
+                    '                          <div style="float: left;margin: 10px;">右键<input name="tuojian'+bu+'" type="radio" value="right"/></div>\n' +
+                    '                      </div>\n' +
+                    '                      <div>执行时间:<input style="width: 40px;" type="text" id="tuotime'+bu+'" name="tuotime'+bu+'" value="1"></div>\n' +
+                    '                    </div>\n' +
+                    '                </div>\n' +
+                    '            </div>\n' +
+                    '            <div style="    margin: 10px;">\n' +
+                    '                <a style="    margin: 10px;" onclick="shang(this)" data-target="'+bu+'">上一步</a>\n' +
+                    '                <a style="    margin: 10px;" onclick="xia(this)" data-target="'+bu+'">下一步</a>\n' +
+                    '                <a style="    margin: 10px;">重置</a>\n' +
+                    '            </div>\n' +
+                    '        </div>'
+                var ele=document.getElementById("cheng");
+                ele.innerHTML=ele.innerHTML+html;
+                document.getElementById("zidong"+id).style.display="none"
+            }
+        }else{
+            //alert("不正常进入下一步")
+            document.getElementById("zidong"+id).style.display="none"
+            document.getElementById("zidong"+id1).style.display="block"
+        }
+        //var id1=id-0+1    //如果不加0，取得id1为'11'，js将字符串转化为数字的方法：1， parseInt（）2，parseFloat()，3， +0
+    }
+    function shang(e) {
+        if(bu==0){
+            bu=1;
+        }
+        $("#weizhi"+bu).attr("value",$("#weizhi"+bu).val())
+        var jianname="jian"+bu
+        $("input[name="+jianname+"]:checked").attr("checked",true);
+        $("#clickcount"+bu).attr("value",$("#clickcount"+bu).val())
+        $("#content"+bu).attr("value",$("#content"+bu).val())
+        $("#interval"+bu).attr("value",$("#interval"+bu).val())
+        $("#tuoweizhi"+bu).attr("value",$("#tuoweizhi"+bu).val())
+        var tuojianname="tuojian"+bu
+        $("input[name="+tuojianname+"]:checked").attr("checked",true);
+        $("#tuotime"+bu).attr("value",$("#tuotime"+bu).val())
+        ///////
+        var id = e.getAttribute("data-target");
+        var id1=id-0-1;
+        if(id1==0){
+            //alert("没有上一步了")
+            $('#infor').show();
+            $(inforMsg).html("没有上一步了")
+        }else{
+           // alert("进入上一步")
+            document.getElementById("zidong"+id).style.display="none"
+            document.getElementById("zidong"+id1).style.display="block"
+        }
+    }
+    function submit1(e) {
+        if(bu==0){
+            bu=1
+        }
+       var actionId = e.getAttribute("data-actionId");
+       //var id = e.getAttribute("data-target");
+        //判断是否填写合格，鼠标点击和表单填写和鼠标拖动只能填一个
+        var m=0;
+        for(var i=1;i<=bu;i++){
+           // alert("进入循环")
+           var j=0;
+           if($("#weizhi"+i).val()==""){
+               j++;
+           }
+           if($("#content"+i).val()==""){
+               j++;
+           }
+           if($("#tuoweizhi"+i).val()==""){
+               j++;
+           }
+           if(j==2){
+               m++;
+           }else{
+               if(j=3){
+                  // alert("第"+i+"步不能什么都不选，请检查！！！")
+                   $('#infor').show();
+                   $(inforMsg).html("第"+i+"步不能什么都不选，请检查！！！")
+               }else{
+                  // alert("第"+i+"步只能选择一种类型，不能多选，请检查！！！")
+                   $('#infor').show();
+                   $(inforMsg).html("第"+i+"步只能选择一种类型，不能多选，请检查！！！")
+               }
+           }
+       }
+       if(bu==m){
+           $("#tijiao").attr('action','/newActiondo/'+bu+"?actionId="+actionId)
+           $("#tijiao").submit();
+       }
+    }
+    //////////
+    /* var obj = {
+
+    };
+   function xiqu(e) {
+        var id = e.getAttribute("data-target");
+        var lei = e.getAttribute("data-tuo");
+        $.ajax({
+            url: "/xiqu",
+            type: 'POST',
+            dataType: 'json',
+            contentType: "application/json",
+            async: false, //false 同步
+            data: JSON.stringify(obj),
+            success: function (result) {
+                //alert(result.line)
+                // $("#weizhi"+id).val(result.line);
+                if(lei=="tuo"){
+                    $("#tuoweizhi"+id).attr("value",result.line)
+                }else{
+                    $("#weizhi"+id).attr("value",result.line)
+                }
+            }
+        })
+    }*/
+    function xiqu(e) {
+        var id = e.getAttribute("data-target");
+        var lei = e.getAttribute("data-tuo");
+        $.get("/xiqu", function (result) {
+                if(lei=="tuo"){
+                    $("#tuoweizhi"+id).attr("value",result.line)
+                }else{
+                    $("#weizhi"+id).attr("value",result.line)
+                }
+            }
+        )
+    }
+    function showdian(e){
+        var id = e.getAttribute("data-target");
+        document.getElementById("dian"+id).style.display="block"
+        document.getElementById("biao"+id).style.display="none"
+        document.getElementById("tuo"+id).style.display="none"
+    }
+    function showbiao(e){
+        var id = e.getAttribute("data-target");
+        document.getElementById("dian"+id).style.display="none"
+        document.getElementById("biao"+id).style.display="block"
+        document.getElementById("tuo"+id).style.display="none"
+
+    }
+    function showtuo(e){
+        var id = e.getAttribute("data-target");
+        document.getElementById("tuo"+id).style.display="block"
+        document.getElementById("dian"+id).style.display="none"
+        document.getElementById("biao"+id).style.display="none"
+    }
+    function chong(e) {
+        var id = e.getAttribute("data-target");
+    }
+    function closeerror1() {
+        $('#infor').hide();
+    }
+</script>
