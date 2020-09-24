@@ -23,10 +23,10 @@ import java.util.UUID;
 
 @Controller
 public class LoginController {
-    public static final String APP_ID = "21552231";
-    public static final String API_KEY = "68eXoPAQLd8cHlWLwvebxjo5";
-    public static final String SECRET_KEY = "UTsmlzlcooPg5yOhWh28dFe9sH9SmYxl";
-   // public static final String accessToken = "24.8d1580af60092a592afeaccc38dc635d.2592000.1599967377.282335-21552231";
+    public static final String APP_ID = "";
+    public static final String API_KEY = "";
+    public static final String SECRET_KEY = "";
+   // public static final String accessToken = "";
     @Autowired
     private UserMapper userMapper;
     @Autowired
